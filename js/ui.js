@@ -1,84 +1,17 @@
-window.UI = {
-  init() {
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.addEventListener('click', () => this.showPanel(btn.dataset.tab));
-    });
-  },
-  
-  showPanel(name) {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector(`[data-tab="${name}"]`)?.classList.add('active');
-    document.getElementById('tab-' + name)?.classList.add('active');
-  },
-  
-  loadDashboard() {
-    document.getElementById('loginScreen').classList.remove('active');
-    document.getElementById('dashboard').classList.add('active');
-    
-    const badge = document.getElementById('userBadge');
-    if (Auth.isAdmin()) {
-      badge.textContent = 'ADMINISTRATEUR';
-      badge.className = 'badge badge-admin';
-      document.getElementById('adminPanel').classList.remove('hidden');
-      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-    } else {
-      badge.textContent = 'TIERS';
-      badge.className = 'badge badge-tiers';
-      document.getElementById('adminPanel').classList.add('hidden');
-      document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-    }
-    
-    const stats = Database.stats();
-    document.getElementById('sBrands').textContent = stats.brands;
-    document.getElementById('sModels').textContent = stats.models;
-    document.getElementById('sEngines').textContent = stats.engines;
-    document.getElementById('sFaults').textContent = stats.faults;
-    document.getElementById('sDtc').textContent = stats.dtc;
-    document.getElementById('sSize').textContent = 
-      (Storage.size() / 1024).toFixed(1) + ' Ko';
-    document.getElementById('sessionHash').textContent = 
-      Math.random().toString(36).slice(2, 14);
-    document.getElementById('lastSync').textContent = new Date().toLocaleString('fr-FR');
-    
-    Storage.startAutoSave();
-    Diag.init();
-    Catalogue.init();
-    TSB.init();
-    Domains.init();
-    this.renderTiers();
-  },
-  
-  renderTiers() {
-    const requests = JSON.parse(localStorage.getItem('mecadata_requests') || '[]');
-    document.getElementById('tiersList').innerHTML = requests.length ?
-      requests.reverse().map((r, i) => `
-        <div class="tier-item">
-          <div class="tier-info">
-            <strong>${r.name}</strong>
-            <small>Demandé le ${new Date(r.time).toLocaleString('fr-FR')}</small>
-          </div>
-          <span class="tag tag-${r.status === 'approved' ? 'info' : (r.status === 'denied' ? 'critical' : 'medium')}">
-            ${r.status}
-          </span>
-          <div class="tier-actions">
-            ${r.status === 'pending' ? `
-              <button class="tier-btn approve" onclick="UI.tierAction(${requests.length-1-i}, 'approved')">✓</button>
-              <button class="tier-btn deny" onclick="UI.tierAction(${requests.length-1-i}, 'denied')">✗</button>
-            ` : ''}
-            ${r.status === 'approved' ? `
-              <button class="tier-btn revoke" onclick="UI.tierAction(${requests.length-1-i}, 'revoked')">Révoquer</button>
-            ` : ''}
-          </div>
-        </div>
-      `).join('') :
-      '<div class="info-card glass"><p>Aucune demande.</p></div>';
-  },
-  
-  tierAction(i, status) {
-    const requests = JSON.parse(localStorage.getItem('mecadata_requests') || '[]');
-    requests[i].status = status;
-    localStorage.setItem('mecadata_requests', JSON.stringify(requests));
-    this.renderTiers();
-  }
+window.UI={tierStatus:'all',
+ init:function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(btn){btn.addEventListener('click',function(){UI.showPanel(btn.getAttribute('data-tab'));});});},
+ showPanel:function(n){var btn=document.querySelector('.tab[data-tab="'+n+'"]');if(btn&&btn.classList.contains('hidden')){alert('Accès réservé administrateur');return;}Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.remove('active');});Array.prototype.forEach.call(document.querySelectorAll('.tab-content'),function(c){c.classList.remove('active');});if(btn)btn.classList.add('active');var p=document.getElementById('tab-'+n);if(p)p.classList.add('active');},
+ loadDashboard:function(){
+  document.getElementById('loginScreen').classList.remove('active');document.getElementById('dashboard').classList.add('active');
+  var badge=document.getElementById('userBadge');
+  if(Auth.isAdmin()){badge.textContent='ADMINISTRATEUR';badge.className='badge badge-admin';document.getElementById('adminPanel').classList.remove('hidden');Array.prototype.forEach.call(document.querySelectorAll('.admin-only'),function(el){el.classList.remove('hidden');});}
+  else{badge.textContent='TIERS';badge.className='badge badge-tiers';document.getElementById('adminPanel').classList.add('hidden');Array.prototype.forEach.call(document.querySelectorAll('.admin-only'),function(el){el.classList.add('hidden');});}
+  var s=Database.stats();document.getElementById('sBrands').textContent=s.brands;document.getElementById('sModels').textContent=s.models;document.getElementById('sEngines').textContent=s.engines;document.getElementById('sFaults').textContent=s.faults;document.getElementById('sDtc').textContent=s.dtc;document.getElementById('sSize').textContent=(Storage.size()/1024).toFixed(1)+' Ko';document.getElementById('integrityStatus').textContent=s.engines+' motorisations ✓';document.getElementById('sessionHash').textContent=Math.random().toString(36).slice(2,14);document.getElementById('lastSync').textContent=new Date().toLocaleString('fr-FR');document.getElementById('storageType').textContent=Storage.type;
+  Storage.startAutoSave();
+  Diag.init();Catalogue.render();TSB.chips();TSB.render();Domains.init();this.renderTiers();
+ },
+ renderTiers:function(){var rs=Storage.getRequests();var f=this.tierStatus;var list=f==='all'?rs:rs.filter(function(r){return r.status===f;});
+  document.getElementById('tiersList').innerHTML=list.length?list.map(function(r){var i=rs.indexOf(r);return '<div class="tier-item"><div><strong>'+r.name+'</strong><br><small class="muted">Demandé le '+new Date(r.time).toLocaleString('fr-FR')+'</small></div><span class="tag tag-'+(r.status==='approved'?'info':r.status==='denied'?'critical':'medium')+'">'+r.status.toUpperCase()+'</span><div class="tier-actions">'+(r.status==='pending'?'<button type="button" class="tier-btn approve" onclick="UI.tierAction('+i+',\'approved\')">✓</button><button type="button" class="tier-btn deny" onclick="UI.tierAction('+i+',\'denied\')">✗</button>':'')+(r.status==='approved'?'<button type="button" class="tier-btn revoke" onclick="UI.tierAction('+i+',\'revoked\')">Révoquer</button>':'')+'</div></div>';}).join(''):'<div class="info-card glass"><p>Aucune demande.</p></div>';},
+ tierFilter:function(s,el){this.tierStatus=s;Array.prototype.forEach.call(document.querySelectorAll('.filter-btn'),function(b){b.classList.remove('active');});if(el)el.classList.add('active');this.renderTiers();},
+ tierAction:function(i,st){var rs=Storage.getRequests();if(rs[i]){rs[i].status=st;Storage.setRequests(rs);this.renderTiers();}}
 };
