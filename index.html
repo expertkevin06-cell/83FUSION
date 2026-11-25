@@ -4,211 +4,85 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>MECADATA // EXPERT v7.1</title>
-<style>
-:root{--bg:#0a0e1a;--glass:rgba(22,32,54,.65);--gb:rgba(120,160,220,.18);--accent:#3b82f6;--accent2:#06b6d4;
---danger:#ef4444;--success:#10b981;--warn:#f59e0b;--text:#e2e8f0;--muted:#94a3b8;--border:#1e293b;--r:14px;--rs:8px}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:-apple-system,'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
-.glass{background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--gb);border-radius:var(--r)}
-.screen{display:none;position:relative;z-index:2;min-height:100vh}.screen.active{display:block}
-.hidden{display:none!important}.muted{color:var(--muted);font-size:.85rem}
-/* ── BANNIÈRE ERREUR + LOG ── */
-#errBanner{position:fixed;top:0;left:0;right:0;z-index:2000;background:#7f1d1d;color:#fecaca;padding:10px 16px;font-size:.85rem;display:none;align-items:center;gap:10px;flex-wrap:wrap}
-#errBanner.show{display:flex}
-#errBanner button{background:#fecaca;color:#7f1d1d;border:none;border-radius:6px;padding:4px 10px;font-weight:700;cursor:pointer}
-#btnLog{position:fixed;bottom:14px;right:14px;z-index:2000;width:44px;height:44px;border-radius:50%;background:#1e293b;border:1px solid var(--gb);color:var(--text);font-size:1.2rem;cursor:pointer}
-#logPanel{position:fixed;bottom:66px;right:14px;z-index:2000;width:min(420px,90vw);max-height:40vh;overflow:auto;background:#0f172aee;border:1px solid var(--gb);border-radius:10px;padding:10px;font-family:monospace;font-size:.75rem;color:#a5f3fc;display:none;white-space:pre-wrap}
-#logPanel.show{display:block}
-/* ── FOND ANIMÉ ── */
-.bg-animated{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none;
-background:radial-gradient(ellipse at top,rgba(59,130,246,.15),transparent 50%),radial-gradient(ellipse at bottom,rgba(6,182,212,.1),transparent 50%),var(--bg)}
-#particleCanvas{position:absolute;inset:0;width:100%;height:100%}
-.floating-tool{position:absolute;opacity:.18;filter:drop-shadow(0 0 20px rgba(59,130,246,.5));transition:transform 3s ease-in-out}
-.wrench-tool{top:15%;left:8%;width:120px;height:120px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M15 50 Q25 30 45 30 L55 30 Q75 30 85 50 Q75 70 55 70 L45 70 Q25 70 15 50 Z M30 50 a8 8 0 1 1 16 0 a8 8 0 1 1 -16 0 M54 50 a8 8 0 1 1 16 0 a8 8 0 1 1 -16 0' fill='%2394a3b8' stroke='%2364748b' stroke-width='2'/></svg>") no-repeat center/contain}
-.oil-can-tool{top:55%;right:10%;width:90px;height:140px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 100'><rect x='15' y='20' width='30' height='70' rx='4' fill='%23f59e0b' stroke='%23d97706' stroke-width='2'/><rect x='20' y='10' width='20' height='14' fill='%2378350f'/><path d='M45 40 L58 32 L58 42 Z' fill='%2378350f'/></svg>") no-repeat center/contain}
-.bubbles{position:absolute;inset:0;overflow:hidden}
-.bubble{position:absolute;bottom:-120px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(245,158,11,.4),rgba(245,158,11,.1) 60%,transparent);box-shadow:0 0 20px rgba(245,158,11,.3);animation:rise linear infinite}
-.bubble:nth-child(1){width:80px;height:80px;left:15%;animation-duration:14s}
-.bubble:nth-child(2){width:120px;height:120px;left:45%;animation-duration:19s;animation-delay:3s}
-.bubble:nth-child(3){width:60px;height:60px;left:70%;animation-duration:16s;animation-delay:6s}
-.bubble:nth-child(4){width:100px;height:100px;left:30%;animation-duration:21s;animation-delay:2s}
-.bubble:nth-child(5){width:70px;height:70px;left:82%;animation-duration:17s;animation-delay:5s}
-.bubble:nth-child(6){width:90px;height:90px;left:5%;animation-duration:18s;animation-delay:8s}
-@keyframes rise{0%{transform:translate(0,0) scale(1);opacity:0}10%{opacity:.6}50%{transform:translate(40px,-50vh) scale(1.1);opacity:.5}90%{opacity:.2}100%{transform:translate(-30px,-110vh) scale(.8);opacity:0}}
-/* ── LOGIN ── */
-#loginScreen{display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{max-width:480px;width:100%;padding:40px 32px;text-align:center}
-.logo-title{font-size:2.2rem;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#3b82f6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.logo-version{color:var(--muted);font-size:.85rem;letter-spacing:3px}
-.sep{color:#475569;margin:0 4px}
-.subtitle{color:var(--muted);margin:16px 0 28px;line-height:1.6}
-.highlight{color:var(--accent2);font-weight:700;padding:4px 10px;background:rgba(6,182,212,.12);border-radius:6px;display:inline-block;margin-top:8px}
-.role-btn{width:100%;padding:18px;margin:8px 0;border:none;border-radius:var(--rs);display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;transition:all .25s}
-.role-btn .icon{font-size:1.8rem}.role-btn strong{display:block;font-size:1.05rem;margin-bottom:2px}.role-btn small{color:var(--muted);font-size:.8rem}
-.btn-admin{background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff}
-.btn-tiers{background:rgba(30,41,59,.8);color:var(--text);border:1px solid var(--border)}
-.btn-request{background:rgba(6,182,212,.1);color:var(--accent2);border:1px solid var(--accent2)}
-.role-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.footer-info{margin-top:24px;color:var(--muted);font-size:.85rem;line-height:1.5}
-/* ── MODAL ── */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
-.modal.active{display:flex}
-.modal-card{max-width:440px;width:100%;padding:32px}
-.modal-card h3{margin-bottom:8px}
-.modal-card input{width:100%;padding:14px;margin:14px 0;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:1.1rem;text-align:center;letter-spacing:2px}
-.modal-card textarea{width:100%;padding:12px;margin:12px 0;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:monospace;font-size:.85rem;resize:vertical}
-#pwdError{color:#fca5a5;font-size:.85rem;min-height:1.2em;margin-bottom:6px}
-.modal-actions{display:flex;gap:10px;margin-top:14px}
-.btn-primary,.btn-ghost,.btn-danger{flex:1;padding:12px;border:none;border-radius:var(--rs);font-weight:700;cursor:pointer;font-size:.95rem}
-.btn-primary{background:var(--success);color:#fff}.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-danger{background:var(--danger);color:#fff}
-/* ── TOPBAR / TABS ── */
-.topbar{position:sticky;top:8px;margin:8px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10;flex-wrap:wrap;gap:8px}
-.logo-mini{font-size:1rem;font-weight:800}.topbar-left,.topbar-right{display:flex;gap:10px;align-items:center}
-.badge{padding:5px 12px;border-radius:20px;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1px}
-.badge-admin{background:rgba(37,99,235,.2);color:#60a5fa;border:1px solid #2563eb}
-.badge-tiers{background:rgba(100,116,139,.2);color:#94a3b8;border:1px solid #64748b}
-.auto-check{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;background:rgba(16,185,129,.1);border:1px solid var(--success);font-size:.82rem}
-.pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.icon-btn{width:38px;height:38px;border-radius:50%;background:rgba(30,41,59,.7);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:1.05rem}
-.icon-btn:hover{background:var(--accent)}
-.tabs{margin:0 8px 16px;padding:6px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{padding:10px 16px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-weight:600;border-radius:var(--rs);white-space:nowrap;font-size:.9rem}
-.tab.active{background:var(--accent);color:#fff}
-.tab-content{display:none;padding:0 8px 16px}.tab-content.active{display:block;animation:fadeIn .3s}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-/* ── BENCH / FILTRES ── */
-.admin-panel{padding:20px;margin:0 0 16px}
-.admin-stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.stat-chip{background:rgba(255,255,255,.04);padding:6px 12px;border-radius:20px;font-size:.85rem}
-.stat-chip strong{color:var(--accent2);margin-right:4px}
-.hidden-data{margin-top:10px;padding:14px;background:var(--bg);border-left:3px solid var(--danger);font-family:monospace;font-size:.8rem;color:#fca5a5;line-height:1.7}
-.correlation-bench{padding:24px;margin-bottom:16px}
-.bench-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-.bench-header h3{color:var(--accent2);font-size:1.02rem}
-.bench-actions{display:flex;gap:8px;flex-wrap:wrap}
-.search-input{padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-size:.9rem;width:240px}
-.btn-sm{padding:8px 14px;background:var(--danger);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;font-weight:600;font-size:.85rem}
-.bench-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:16px}
-.bench-cell{display:flex;flex-direction:column;gap:6px;background:rgba(10,14,26,.5);padding:12px;border-radius:var(--rs);border:1px solid var(--border)}
-.bench-cell label{font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-select{width:100%;padding:11px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--rs);font-size:.9rem}
-.filters-advanced{background:rgba(10,14,26,.5);padding:16px;border-radius:var(--rs);border:1px solid var(--border)}
-.filter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.filter-group{display:flex;flex-direction:column;gap:6px}
-.filter-group label{font-size:.72rem;color:var(--muted);font-weight:600}
-/* ── RÉSULTATS ── */
-.results-tabs{display:flex;gap:4px;padding:6px;margin-bottom:16px;overflow-x:auto}
-.r-tab{padding:10px 14px;background:transparent;color:var(--muted);border:none;border-radius:var(--rs);cursor:pointer;font-weight:600;white-space:nowrap;font-size:.85rem}
-.r-tab.active{background:var(--accent);color:#fff}
-.r-pane{display:none}.r-pane.active{display:block}
-.r-pane ul{list-style:none}
-.r-pane li{padding:16px;margin-bottom:10px;background:var(--glass);border-radius:var(--rs);border-left:4px solid var(--accent);line-height:1.55;font-size:.92rem}
-.r-pane li.critical{border-left-color:#dc2626}.r-pane li.high{border-left-color:#f97316}.r-pane li.medium{border-left-color:#eab308}.r-pane li.info,.r-pane li.low{border-left-color:#3b82f6}
-.tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:.68rem;font-weight:800;text-transform:uppercase;margin-right:6px}
-.tag-critical{background:rgba(220,38,38,.2);color:#fca5a5}.tag-high{background:rgba(249,115,22,.2);color:#fdba74}
-.tag-medium{background:rgba(234,179,8,.2);color:#fde047}.tag-info,.tag-low{background:rgba(59,130,246,.2);color:#93c5fd}
-.tag-nature{padding:2px 8px;border-radius:4px;font-size:.68rem;font-weight:700;margin-right:6px}
-.tag-rappel{background:rgba(220,38,38,.3);color:#fca5a5}.tag-campagne{background:rgba(249,115,22,.3);color:#fdba74}
-.tag-tsb{background:rgba(59,130,246,.3);color:#93c5fd}.tag-panne{background:rgba(168,85,247,.3);color:#d8b4fe}
-.dtc-chip{display:inline-block;padding:3px 8px;background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4);color:#67e8f9;border-radius:4px;font-family:monospace;font-size:.78rem;margin:2px 4px 2px 0}
-.sources-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.source-card{display:block;padding:20px;background:var(--glass);border-radius:var(--r);text-align:center;text-decoration:none;color:var(--text);font-weight:600;border:1px solid var(--gb)}
-.info-card{padding:40px;text-align:center;margin-bottom:16px}
-.info-card h3{color:var(--accent2);margin-bottom:12px}.info-card p{color:var(--muted);line-height:1.6}
-/* ── CATALOGUE / TSB / DOMAINES ── */
-.section-header{padding:20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.section-header h3{color:var(--accent2);font-size:1.1rem}
-.section-actions{display:flex;gap:8px}
-.section-actions input{padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);min-width:200px}
-.catalogue-stats{padding:10px 16px;margin-bottom:12px;font-size:.9rem;color:var(--muted)}
-.catalogue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-bottom:16px}
-.catalogue-item{padding:14px;background:var(--glass);border-radius:var(--rs);border:1px solid var(--gb);font-size:.88rem}
-.catalogue-item .brand-line{font-weight:700;color:var(--accent2);margin-bottom:4px}
-.catalogue-item .engine-line{color:var(--muted);font-size:.82rem}
-.catalogue-item .power-line{display:flex;gap:10px;margin-top:6px;font-size:.78rem;color:var(--accent);flex-wrap:wrap}
-.pagination{display:flex;justify-content:center;align-items:center;gap:8px;padding:10px}
-.tsb-filter-bar{padding:14px;margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
-.domain-chip{padding:6px 12px;background:rgba(30,41,59,.7);border:1px solid var(--border);border-radius:20px;font-size:.76rem;cursor:pointer}
-.domain-chip.active{background:var(--accent);border-color:var(--accent)}
-.tsb-list{display:grid;gap:10px}
-.tsb-card{padding:16px;background:var(--glass);border-radius:var(--rs);border-left:4px solid var(--accent)}
-.tsb-card h4{color:var(--accent2);margin-bottom:8px}
-.tsb-meta{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
-.domains-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.domain-card{padding:16px;background:var(--glass);border-radius:var(--rs);text-align:center;cursor:pointer}
-.domain-card .count{font-size:1.5rem;font-weight:800;color:var(--accent2)}
-.domain-card .name{font-size:.85rem;margin-top:6px}
-/* ── IMPORT / MANAGER / TIERS ── */
-.import-zone{padding:20px;margin-bottom:16px}
-.drop-inner{text-align:center;padding:40px 20px}
-.drop-icon{font-size:4rem;margin-bottom:16px;opacity:.5}
-.divider{margin:20px 0;color:var(--muted);font-weight:700;letter-spacing:2px}
-.import-preview{padding:20px;margin-bottom:16px}
-#previewContent{background:var(--bg);padding:14px;border-radius:var(--rs);font-family:monospace;font-size:.8rem;max-height:280px;overflow:auto;margin-bottom:14px}
-.manager-section{padding:24px;margin-bottom:16px}
-.manager-section h4{color:var(--accent2);margin-bottom:16px}
-.manager-section.danger-zone{border:1px solid var(--danger)}
-.toggle-row,.interval-row,.url-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
-.interval-row input,.url-row input{flex:1;min-width:200px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);color:var(--text)}
-.last-check{margin:14px 0;padding:12px;background:var(--bg);border-radius:var(--rs);color:var(--muted);font-size:.88rem}
-.manager-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
-.manager-btn{padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;font-weight:700}
-.sys-stats{display:flex;flex-direction:column;gap:8px}
-.sys-row{display:flex;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--rs)}
-.sys-row span{color:var(--muted)}
-.switch{position:relative;display:inline-block;width:52px;height:28px}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;inset:0;cursor:pointer;background:var(--border);transition:.3s;border-radius:28px}
-.slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-input:checked+.slider{background:var(--success)}input:checked+.slider::before{transform:translateX(24px)}
-.tiers-filter{padding:12px;margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
-.filter-btn{padding:8px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:20px;cursor:pointer;font-size:.85rem;font-weight:600}
-.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.tiers-list{display:flex;flex-direction:column;gap:8px}
-.tier-item{padding:14px;background:var(--glass);border-radius:var(--rs);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.tier-actions{display:flex;gap:6px}
-.tier-btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;color:#fff}
-.tier-btn.approve{background:var(--success)}.tier-btn.deny{background:var(--danger)}.tier-btn.revoke{background:var(--warn)}
-.app-footer{text-align:center;padding:20px;color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);margin-top:20px}
-@media(max-width:768px){.bench-grid,.filter-row{grid-template-columns:1fr 1fr}.search-input{width:100%}.catalogue-grid,.domains-grid{grid-template-columns:1fr 1fr}.manager-grid{grid-template-columns:1fr}}
-@media(max-width:480px){.bench-grid,.filter-row,.catalogue-grid{grid-template-columns:1fr}}
-</style>
+<title>MECADATA // EXPERT v7.2</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/mobile.css">
+<script>
+/* ═══ AUTO-DIAGNOSTIC VISIBLE DANS L'APK ═══ */
+(function(){
+  var errors=[];
+  window.addEventListener('error',function(e){
+    var msg='⚠ '+(e.message||'')+ ' → '+((e.filename||'').split('/').pop()||'')+':'+e.lineno;
+    errors.push(msg);
+    var b=document.getElementById('errBanner');
+    if(b){b.innerHTML='<b>ERREUR JS :</b> '+msg+'<br><small>Vérifiez que tous les fichiers js/ sont bien présents dans l\'APK (npx cap sync)</small>';b.style.display='block';}
+  },true);
+  window.addEventListener('unhandledrejection',function(e){
+    var msg='⚠ Promise: '+(e.reason||'');
+    errors.push(msg);
+    var b=document.getElementById('errBanner');
+    if(b){b.innerHTML='<b>ERREUR :</b> '+msg;b.style.display='block';}
+  });
+  window.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      var need=['Database','Storage','Auth','Importer','Diag','Catalogue','TSB','Manager','UI','App'];
+      var missing=[];
+      need.forEach(function(k){if(!window[k])missing.push(k);});
+      if(missing.length){
+        var b=document.getElementById('errBanner');
+        b.innerHTML='<b>⚠ MODULES MANQUANTS</b> (fichiers js/ introuvables dans l\'APK) : <u>'+missing.join(', ')+'</u><br><small>→ Lancez <code>npx cap sync android</code> puis rebuildez l\'APK</small>';
+        b.style.display='block';
+      }
+    },500);
+  });
+})();
+</script>
 </head>
 <body>
 
-<!-- BANNIÈRE ERREUR (visible dans l'APK !) -->
-<div id="errBanner"><span id="errText"></span><button type="button" onclick="hardReload()">Recharger sans cache</button><button type="button" onclick="document.getElementById('errBanner').classList.remove('show')">Fermer</button></div>
-<button type="button" id="btnLog" onclick="document.getElementById('logPanel').classList.toggle('show')">🐞</button>
-<pre id="logPanel"></pre>
+<!-- BANNIÈRE ERREUR VISIBLE -->
+<div id="errBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#7f1d1d;color:#fecaca;padding:12px;font:13px system-ui;line-height:1.5;border-bottom:2px solid #991b1b"></div>
 
-<div class="bg-animated"><canvas id="particleCanvas"></canvas>
-<div class="floating-tool wrench-tool" id="wrench"></div>
-<div class="floating-tool oil-can-tool" id="oilCan"></div>
-<div class="bubbles"><span class="bubble"></span><span class="bubble"></span><span class="bubble"></span><span class="bubble"></span><span class="bubble"></span><span class="bubble"></span></div></div>
-
-<!-- LOGIN -->
-<div id="loginScreen" class="screen active">
-  <div class="login-card glass">
-    <div class="logo-title">MECADATA<span class="sep">//</span>EXPERT</div>
-    <div class="logo-version">v7.1 · FUSION MASSIVE · BUILD FIABLE</div>
-    <p class="subtitle">Console technique 2017→2027<br><span class="highlight" id="loginStats">Chargement base…</span></p>
-    <button type="button" class="role-btn btn-admin" onclick="Auth.prompt('admin')"><span class="icon">🔒</span><span><strong>ADMINISTRATEUR</strong><small>Contrôle total · Base · Import · Export</small></span></button>
-    <button type="button" class="role-btn btn-tiers" onclick="Auth.prompt('tiers')"><span class="icon">👁</span><span><strong>ACCÈS TIERS</strong><small>Consultation · Recherche · Impression</small></span></button>
-    <button type="button" class="role-btn btn-request" onclick="Auth.showRequestForm()"><span class="icon">✉</span><span><strong>DEMANDER UN ACCÈS</strong><small>Nouveau technicien</small></span></button>
-    <div class="footer-info"><small>🔐 Base hors ligne · Sauvegarde locale auto<br>Build <span id="buildTag">—</span></small></div>
+<!-- FOND ANIMÉ -->
+<div class="bg-animated">
+  <canvas id="particleCanvas"></canvas>
+  <div class="floating-tool wrench-tool" id="wrench"></div>
+  <div class="floating-tool oil-can-tool" id="oilCan"></div>
+  <div class="bubbles">
+    <span class="bubble"></span><span class="bubble"></span><span class="bubble"></span>
+    <span class="bubble"></span><span class="bubble"></span><span class="bubble"></span>
   </div>
 </div>
 
-<!-- MODAL MDP -->
+<!-- ═══ LOGIN ═══ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-card glass">
+    <div class="logo-title">MECADATA<span class="sep">//</span>EXPERT</div>
+    <div class="logo-version">v7.2 · FUSION MASSIVE</div>
+    <p class="subtitle">Console technique 2017→2027<br>
+    <span class="highlight" id="loginStats">Chargement base…</span></p>
+    <button type="button" class="role-btn btn-admin" onclick="Auth.prompt('admin')">
+      <span class="icon">🔒</span><span><strong>ADMINISTRATEUR</strong><small>Contrôle total · Base · Import · Export</small></span>
+    </button>
+    <button type="button" class="role-btn btn-tiers" onclick="Auth.prompt('tiers')">
+      <span class="icon">👁</span><span><strong>ACCÈS TIERS</strong><small>Consultation · Recherche · Impression</small></span>
+    </button>
+    <button type="button" class="role-btn btn-request" onclick="Auth.showRequestForm()">
+      <span class="icon">✉</span><span><strong>DEMANDER UN ACCÈS</strong><small>Nouveau technicien</small></span>
+    </button>
+    <div class="footer-info"><small>🔐 Base hors ligne · Sauvegarde locale auto</small></div>
+  </div>
+</div>
+
+<!-- MODAL MOT DE PASSE -->
 <div id="pwdModal" class="modal">
   <div class="modal-card glass">
     <h3 id="pwdTitle">Authentification</h3>
     <p class="muted">Le mot de passe résiduel est effacé à chaque lancement.</p>
     <input type="password" id="pwdInput" placeholder="••••••••" autocomplete="off" inputmode="text">
-    <div id="pwdError"></div>
+    <div id="pwdError" style="color:#fca5a5;font-size:.85rem;min-height:1.2em"></div>
     <div class="modal-actions">
       <button type="button" class="btn-primary" onclick="Auth.validate()">Valider</button>
       <button type="button" class="btn-ghost" onclick="Auth.close()">Annuler</button>
@@ -220,6 +94,7 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
 <div id="requestModal" class="modal">
   <div class="modal-card glass">
     <h3>Demande d'accès tiers</h3>
+    <p class="muted">L'administrateur recevra votre demande en temps réel.</p>
     <input type="text" id="reqName" placeholder="Votre prénom (2-24 lettres)">
     <div class="modal-actions">
       <button type="button" class="btn-primary" onclick="Auth.submitRequest()">Envoyer</button>
@@ -228,15 +103,17 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
   </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ═══ DASHBOARD ═══ -->
 <div id="dashboard" class="screen">
   <header class="topbar glass">
-    <div class="topbar-left"><div class="logo-mini">MECADATA<span class="sep">//</span>EXPERT</div><span id="userBadge" class="badge badge-tiers">TIERS</span></div>
+    <div class="topbar-left">
+      <div class="logo-mini">MECADATA<span class="sep">//</span>EXPERT</div>
+      <span id="userBadge" class="badge badge-tiers">TIERS</span>
+    </div>
     <div class="auto-check"><span class="pulse-dot"></span><span id="integrityStatus">…</span></div>
     <div class="topbar-right">
-      <button type="button" class="icon-btn" id="btnManager" onclick="UI.showPanel('manager')" title="Gestionnaire">⚙</button>
       <button type="button" class="icon-btn" onclick="Storage.save();alert('✓ Sauvegardé')" title="Sauvegarder">💾</button>
-      <button type="button" class="icon-btn" onclick="Auth.logout()" title="Déconnexion">⏻</button>
+      <button type="button" class="icon-btn danger" onclick="Auth.logout()" title="Déconnexion">⏻</button>
     </div>
   </header>
 
@@ -255,15 +132,15 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
     <div id="adminPanel" class="admin-panel glass hidden">
       <h3 style="color:var(--accent2)">⚙ Panneau Administrateur</h3>
       <div class="admin-stats">
-        <div class="stat-chip"><strong id="sBrands">0</strong>marques</div>
-        <div class="stat-chip"><strong id="sModels">0</strong>modèles</div>
-        <div class="stat-chip"><strong id="sEngines">0</strong>motorisations</div>
-        <div class="stat-chip"><strong id="sFaults">0</strong>fiches</div>
-        <div class="stat-chip"><strong id="sDtc">0</strong>DTC</div>
-        <div class="stat-chip"><strong id="sSize">0</strong>base</div>
+        <div class="stat-chip"><strong id="sBrands">0</strong> marques</div>
+        <div class="stat-chip"><strong id="sModels">0</strong> modèles</div>
+        <div class="stat-chip"><strong id="sEngines">0</strong> motorisations</div>
+        <div class="stat-chip"><strong id="sFaults">0</strong> fiches</div>
+        <div class="stat-chip"><strong id="sDtc">0</strong> DTC</div>
+        <div class="stat-chip"><strong id="sSize">0</strong> base</div>
       </div>
       <details><summary style="cursor:pointer;color:var(--warn);font-weight:600;font-size:.9rem">🔐 Données cachées système</summary>
-        <div class="hidden-data">[ROOT ACCESS GRANTED]<br>Session Hash: <span id="sessionHash">—</span><br>Last Sync: <span id="lastSync">—</span><br>Modules: Diag_OBD2, TSB_EU, Recall_NHTSA, Maintenance_AI<br>Storage: <span id="storageType">localStorage</span> · <span id="saveStatus">✓</span></div>
+        <div class="hidden-data">[ROOT ACCESS GRANTED]<br>Session Hash: <span id="sessionHash">—</span><br>Last Sync: <span id="lastSync">—</span><br>Modules: Diag_OBD2, TSB_EU, Recall_NHTSA<br>Storage: <span id="storageType">localStorage</span> · <span id="saveStatus">✓</span></div>
       </details>
     </div>
 
@@ -318,7 +195,7 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
   <!-- CATALOGUE -->
   <section class="tab-content" id="tab-catalogue">
     <div class="section-header glass"><h3>📚 Catalogue Motorisations</h3>
-      <div class="section-actions"><input type="text" id="catSearch" placeholder="Filtrer…" oninput="Catalogue.filter(this.value)"><button type="button" class="btn-sm" style="background:var(--success)" onclick="Catalogue.export()">📤 Exporter</button></div></div>
+      <div class="section-actions"><input type="text" id="catSearch" placeholder="Filtrer…" oninput="Catalogue.filter(this.value)"><button type="button" class="btn-sm" style="background:var(--success)" onclick="Catalogue.exportAll()">📤 Exporter</button></div></div>
     <div class="catalogue-stats glass" id="catCount">…</div>
     <div id="catalogueGrid" class="catalogue-grid"></div>
     <div class="pagination" id="catPagination"></div>
@@ -351,7 +228,7 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
     </div></div>
     <div id="importPreview" class="import-preview glass hidden">
       <h4 style="color:var(--success)">Aperçu — <span id="previewCount">0</span> entrée(s)</h4>
-      <div id="previewContent"></div>
+      <pre id="previewContent" style="background:var(--bg);padding:14px;border-radius:8px;font-size:.8rem;max-height:280px;overflow:auto;margin-bottom:14px"></pre>
       <div class="modal-actions"><button type="button" class="btn-primary" onclick="Importer.confirm()">✓ Fusionner</button><button type="button" class="btn-ghost" onclick="Importer.cancel()">✗ Annuler</button></div>
     </div>
   </section>
@@ -377,7 +254,7 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
       <div class="sys-row"><span>Espace utilisé :</span><strong id="storageUsed">—</strong></div>
       <div class="sys-row"><span>Dernière sauvegarde :</span><strong id="lastBackup">Jamais</strong></div>
       <div class="sys-row"><span>Nombre de backups :</span><strong id="backupCount">0</strong></div>
-      <div class="sys-row"><span>Version APK :</span><strong>v7.1.0 FUSION</strong></div>
+      <div class="sys-row"><span>Version APK :</span><strong>v7.2.0 FUSION</strong></div>
     </div></div>
     <div class="manager-section glass danger-zone"><h4>⚠ Zone sensible</h4>
       <div class="manager-grid"><button type="button" class="btn-danger" onclick="Manager.resetAll()">♻ Réinitialiser TOUT</button><button type="button" class="btn-danger" onclick="Manager.purgeCache()">🧹 Purger cache</button></div></div>
@@ -397,379 +274,20 @@ input:checked+.slider{background:var(--success)}input:checked+.slider::before{tr
     <div id="tiersList" class="tiers-list"></div>
   </section>
 
-  <footer class="app-footer"><small>MECADATA Expert v7.1 FUSION · 2017→2027 · Sauvegarde locale active</small></footer>
+  <footer class="app-footer"><small>MECADATA Expert v7.2 · 2017→2027 · Sauvegarde locale active</small></footer>
 </div>
 
-<script>
-/* ═════════ 0. UTILITAIRES + CAPTURE D'ERREURS VISIBLE ═════════ */
-function $id(i){return document.getElementById(i);}
-window.Log={lines:[],
-  push(t,m){this.lines.push('['+new Date().toLocaleTimeString()+'] '+t+' '+m);if(this.lines.length>200)this.lines.shift();$id('logPanel').textContent=this.lines.join('\n');},
-  ok(m){this.push('✓',m);console.log('✓',m);},
-  err(m){this.push('✗',m);console.error('✗',m);var b=$id('errBanner');$id('errText').textContent='⚠ '+m;b.classList.add('show');}
-};
-window.addEventListener('error',function(e){Log.err('JS: '+e.message+' ('+(e.filename||'').split('/').pop()+':'+e.lineno+')');});
-window.addEventListener('unhandledrejection',function(e){Log.err('Promise: '+e.reason);});
-function hardReload(){location.href=location.pathname+'?nocache='+Date.now();}
-function safe(name,fn){try{fn();}catch(e){Log.err(name+' : '+e.message);}}
-function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-
-/* ═════════ 1. BASE DE DONNÉES FUSIONNÉE ═════════ */
-var MEGA_DB={
-"Renault":{"Clio V":{"2019-2024":{
- "1.0 TCe 90":{power:90,cyl:999,code:"H4D",energy:"Essence",tech:"3 cyl. turbo",
-  faults:[{title:"Consommation d'huile moteur",severity:"high",nature:"Panne",symptoms:"Baisse niveau, fumée bleue, dépôt bougies",ref:"NTB-20-045",source:"Rappel Conso"},
-          {title:"Claquement distribution à froid",severity:"medium",nature:"Panne",symptoms:"Bruit métallique 3-5 s après démarrage",ref:"NTB-20-046"}],
-  tsb:[{title:"MAJ calculateur injection",scope:"Ralenti instable",ref:"TSB-21-089"},{title:"Support moteur droit",scope:"Vibrations ralenti",ref:"TSB-22-112"}],
-  dtc:["P0171","P0300","P0521"],
-  maintenance:[{item:"Vidange moteur",km:15000,months:12,spec:"5W30 RN0720"},{item:"Bougies d'allumage",km:60000,months:48},{item:"Liquide de frein",months:36}]},
- "1.5 Blue dCi 85":{power:85,cyl:1461,code:"K9K",energy:"Diesel",tech:"4 cyl. turbo",
-  faults:[{title:"Encrassement EGR et FAP",severity:"medium",nature:"Panne",symptoms:"Perte puissance bas régime, régénérations fréquentes",ref:"NTB-21-012"}],
-  tsb:[{title:"Nettoyage EGR + MAJ logiciel",ref:"TSB-21-033"}],dtc:["P0401","P2002"],
-  maintenance:[{item:"Vidange",km:30000,months:24,spec:"5W30 RN0720"},{item:"Distribution",km:150000,months:72},{item:"Filtre à carburant",km:30000}]},
- "E-Tech 145":{power:145,cyl:1598,code:"H4M-HYB",energy:"Hybride",tech:"Full Hybrid",
-  faults:[{title:"Bruit boîte à crabots",severity:"info",nature:"TSB",symptoms:"Bruit mécanique = fonctionnement normal",ref:"TSB-23-001"}],
-  tsb:[{title:"Info technique boîte à crabots",ref:"TSB-23-001"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12},{item:"Contrôle HV",months:24}]}},
- "Megane E-Tech":{"2022-2027":{"EV60 220ch":{power:220,cyl:0,code:"MEGA-EV",energy:"Électrique",tech:"60 kWh",
-  faults:[{title:"Perte puissance charge rapide",severity:"medium",nature:"Rappel",symptoms:"Puissance bridée après charges rapides répétées",ref:"Rappel E-23",source:"Rappel Conso"}],
-  tsb:[{title:"MAJ BMS thermique",ref:"TSB-23-055"}],dtc:["P0AA6"],
-  maintenance:[{item:"Liquide refroidissement batterie",months:24},{item:"Filtre habitacle",months:12}]}}},
- "Austral":{"2023-2027":{"1.2 E-Tech 130":{power:130,cyl:1199,code:"HR12-HYB",energy:"Hybride",tech:"Mild Hybrid",
-  faults:[{title:"À-coups basse vitesse",severity:"medium",nature:"TSB",symptoms:"À-coups en mode EV basse vitesse",ref:"TSB-23-088"}],
-  tsb:[{title:"MAJ boîte double embrayage",ref:"TSB-23-088"}],dtc:["P0700"],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Peugeot":{"208 II":{"2019-2024":{
- "1.2 PureTech 100":{power:100,cyl:1199,code:"EB2DT",energy:"Essence",tech:"3 cyl. turbo",
-  faults:[{title:"Désintégration courroie humide",severity:"critical",nature:"Rappel",symptoms:"Débris dans l'huile, colmatage crépine, casse moteur",ref:"Rappel R21B",source:"Safety Gate"},
-          {title:"Consommation huile anormale",severity:"high",nature:"Panne",symptoms:"Plus de 0,5 L/1000 km",ref:"NTB-21-088"}],
-  tsb:[{title:"Kit passage courroie sèche",ref:"TSB-22-014"},{title:"MAJ gestion pression huile",ref:"TSB-21-090"}],
-  dtc:["P0016","P0521","P0087"],
-  maintenance:[{item:"Vidange",km:15000,months:12,spec:"0W30 PSA B71"},{item:"Contrôle courroie",km:5000}]},
- "1.5 BlueHDi 100":{power:100,cyl:1499,code:"DV5",energy:"Diesel",tech:"4 cyl. turbo",
-  faults:[{title:"Défaut système AdBlue",severity:"medium",nature:"Rappel",symptoms:"Cristallisation injecteur, compte à rebours",ref:"Rappel R22A"}],
-  tsb:[{title:"Remplacement réservoir AdBlue",ref:"TSB-22-045"}],dtc:["P20EE","P204F"],
-  maintenance:[{item:"Vidange",km:30000,months:24}]}}},
- "3008 II":{"2020-2024":{"1.6 PureTech 180":{power:180,cyl:1598,code:"EP6",energy:"Essence",tech:"4 cyl. turbo",
-  faults:[{title:"Chaîne de distribution allongée",severity:"critical",nature:"Rappel",symptoms:"Claquement métallique, corrélation vilo/AAC",ref:"Rappel R20C"}],
-  tsb:[{title:"Remplacement kit chaîne + tendeur",ref:"TSB-20-110"}],dtc:["P0016","P0017"],
-  maintenance:[{item:"Vidange",km:20000,months:12,spec:"0W30"}]}}}},
-"Citroën":{"C3 III":{"2020-2024":{"1.2 PureTech 110":{power:110,cyl:1199,code:"EB2DT",energy:"Essence",tech:"3 cyl.",
-  faults:[{title:"Courroie humide dégradation",severity:"critical",nature:"Rappel",ref:"Rappel C3-01"}],
-  tsb:[{title:"Inspection + remplacement courroie",ref:"TSB-C3-01"}],dtc:["P0016","P0521"],
-  maintenance:[{item:"Vidange",km:15000,months:12,spec:"0W30"}]}}}},
-"Volkswagen":{"Golf VIII":{"2020-2024":{
- "2.0 TDI 150":{power:150,cyl:1968,code:"EA288 EVO",energy:"Diesel",tech:"4 cyl.",
-  faults:[{title:"Pompe à eau / thermostat",severity:"medium",nature:"Rappel",ref:"Rappel VAG-21"}],
-  tsb:[{title:"Remplacement boîtier thermique",ref:"TSB-VAG-21-45"}],dtc:["P0128","P2181"],
-  maintenance:[{item:"Vidange",km:15000,months:12,spec:"5W30 LL-04"},{item:"Filtre carburant",km:30000}]},
- "1.5 eTSI 150":{power:150,cyl:1498,code:"EA211 EVO",energy:"Essence",tech:"Mild Hybrid 48V",
-  faults:[{title:"Démarreur-générateur BAS",severity:"low",nature:"TSB",ref:"TSB-VAG-22-11"}],
-  tsb:[{title:"Contrôle + MAJ 48V",ref:"TSB-VAG-22-11"}],dtc:["P0A7F"],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}},
- "ID.3":{"2020-2024":{"Pro Performance 204":{power:204,cyl:0,code:"MEB",energy:"Électrique",tech:"58 kWh",
-  faults:[{title:"Panne écran central",severity:"medium",nature:"TSB",ref:"TSB-VAG-23-05"}],
-  tsb:[{title:"Remplacement unité infotainment",ref:"TSB-VAG-23-05"}],dtc:["U0111"],
-  maintenance:[{item:"Liquide de frein",months:36}]}}}},
-"BMW":{"Série 3 G20":{"2019-2024":{
- "320d 190":{power:190,cyl:1995,code:"B47",energy:"Diesel",tech:"4 cyl.",
-  faults:[{title:"Chaîne distribution (côté boîte)",severity:"high",nature:"Panne",ref:"TSB-B47-01"}],
-  tsb:[{title:"Remplacement chaîne + guides",ref:"TSB-B47-01"}],dtc:["P0016","P0017"],
-  maintenance:[{item:"Vidange",km:15000,months:12,spec:"LL-04"}]},
- "330e 292":{power:292,cyl:1998,code:"B48-PHEV",energy:"PHEV",tech:"Hybride",
-  faults:[{title:"Perte propulsion hybride",severity:"medium",nature:"TSB",ref:"TSB-BMW-21-09"}],
-  tsb:[{title:"MAJ module EPM",ref:"TSB-BMW-21-09"}],dtc:["P0A93"],
-  maintenance:[{item:"Contrôle HV",months:48}]}}}},
-"Mercedes-Benz":{"Classe A W177":{"2018-2024":{"A 200 d":{power:150,cyl:1950,code:"OM654q",energy:"Diesel",tech:"4 cyl.",
-  faults:[{title:"Chaîne distribution OM654",severity:"high",nature:"Rappel",ref:"Rappel MB-22-08"}],
-  tsb:[{title:"Remplacement kit distribution",ref:"TSB-MB-22-08"}],dtc:["P0016","P0017"],
-  maintenance:[{item:"Vidange",km:20000,months:12,spec:"229.51"}]}}}},
-"Audi":{"A3 8Y":{"2020-2024":{"1.5 TFSI 150":{power:150,cyl:1498,code:"EA211 EVO",energy:"Essence",tech:"4 cyl.",
-  faults:[{title:"Pompe à eau électrique",severity:"medium",nature:"TSB",ref:"TSB-A3-01"}],
-  tsb:[{title:"Remplacement pompe à eau",ref:"TSB-A3-01"}],dtc:["P2181"],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Toyota":{"Yaris IV":{"2020-2024":{"116h Hybride":{power:116,cyl:1490,code:"M15A-FXE",energy:"Hybride",tech:"THS II",
-  faults:[{title:"Roulement de roue AV",severity:"low",nature:"TSB",ref:"TSB-TY-2022"}],
-  tsb:[{title:"Vérification + graissage roulements",ref:"TSB-TY-2022"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12},{item:"Contrôle hybride",km:90000,months:60}]}}},
- "RAV4":{"2019-2024":{"218h Hybride":{power:218,cyl:2487,code:"A25A-FXS",energy:"Hybride",tech:"THS II AWD",
-  faults:[{title:"Infiltration eau réservoir",severity:"high",nature:"Rappel",ref:"Rappel TY-20-05"}],
-  tsb:[{title:"Remplacement bouchon + pompe",ref:"TSB-TY-20-05"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Honda":{"Civic XI":{"2022-2024":{"1.5 VTEC Turbo 182":{power:182,cyl:1498,code:"L15B7",energy:"Essence",tech:"4 cyl. turbo",
-  faults:[{title:"Dilution huile par essence",severity:"medium",nature:"TSB",ref:"TSB-Honda-1.5T"}],
-  tsb:[{title:"MAJ gestion moteur",ref:"TSB-Honda-1.5T"}],dtc:["P0128","P0172"],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Nissan":{"Qashqai III":{"2021-2024":{"1.3 DIG-T 140":{power:140,cyl:1332,code:"HR13DDT",energy:"Essence",tech:"4 cyl. turbo",
-  faults:[{title:"Roulement roue AR",severity:"low",nature:"TSB",ref:"TSB-NIS-22-08"}],
-  tsb:[{title:"Remplacement roulements AR",ref:"TSB-NIS-22-08"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Mazda":{"CX-5":{"2017-2024":{"2.0 Skyactiv-G 165":{power:165,cyl:1998,code:"PE-VPS",energy:"Essence",tech:"4 cyl.",
-  faults:[{title:"Ressort soupape échappement",severity:"high",nature:"Rappel",ref:"Rappel Mazda-2022"}],
-  tsb:[{title:"Remplacement ressort",ref:"TSB-Mazda-2022"}],dtc:[],
-  maintenance:[{item:"Vidange",km:20000,months:12,spec:"0W20"}]}}}},
-"Hyundai":{"Tucson IV":{"2021-2024":{"1.6 T-GDI 150":{power:150,cyl:1598,code:"G4FP",energy:"Essence",tech:"4 cyl. turbo",
-  faults:[{title:"Module ABS incendie",severity:"critical",nature:"Rappel",ref:"Rappel Hyundai-2023",source:"NHTSA"}],
-  tsb:[{title:"Remplacement module ABS",ref:"TSB-HY-2023"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}},
- "Kona Electric":{"2018-2022":{"204ch LG":{power:204,cyl:0,code:"KONA-EV",energy:"Électrique",tech:"64 kWh",
-  faults:[{title:"Cellules batterie incendie",severity:"critical",nature:"Rappel",ref:"Rappel NHTSA 21V",source:"NHTSA"}],
-  tsb:[{title:"Remplacement batterie HV",ref:"TSB-Kona-LG"}],dtc:["P0AA6"],
-  maintenance:[{item:"Liquide refroidissement",months:48}]}}}},
-"Kia":{"Sportage V":{"2022-2024":{"1.6 T-GDI 150":{power:150,cyl:1598,code:"G4FP",energy:"Essence",tech:"4 cyl.",
-  faults:[{title:"Module ABS incendie",severity:"critical",nature:"Rappel",ref:"Rappel Kia-2023"}],
-  tsb:[{title:"Remplacement module hydraulique",ref:"TSB-Kia-2023"}],dtc:[],
-  maintenance:[{item:"Vidange",km:15000,months:12}]}}}},
-"Ford":{"Puma":{"2020-2024":{"1.0 EcoBoost 125":{power:125,cyl:999,code:"FOX-EB",energy:"Essence",tech:"3 cyl. turbo",
-  faults:[{title:"Volant moteur fixation",severity:"high",nature:"Rappel",ref:"Rappel Ford 22S34"}],
-  tsb:[{title:"Contrôle + remplacement volant",ref:"TSB-Ford-22S34"}],dtc:["P0700"],
-  maintenance:[{item:"Vidange",km:20000,months:12,spec:"5W20"}]}}},
- "Kuga PHEV":{"2020-2022":{"2.5 PHEV 225":{power:225,cyl:2488,code:"KUGA-PHEV",energy:"PHEV",tech:"Hybride",
-  faults:[{title:"Batterie HV incendie",severity:"critical",nature:"Rappel",ref:"Rappel Kuga Safety Gate"}],
-  tsb:[{title:"Remplacement batterie HV",ref:"TSB-Kuga-PHEV"}],dtc:["P0AA6","P0AFA"],
-  maintenance:[{item:"Vidange",km:20000,months:12}]}}}},
-"Tesla":{"Model 3":{"2021-2024":{"Propulsion LFP":{power:283,cyl:0,code:"TESLA-M3",energy:"Électrique",tech:"60 kWh LFP",
-  faults:[{title:"Caméra de recul",severity:"medium",nature:"Rappel",ref:"Rappel NHTSA 23V-456"}],
-  tsb:[{title:"Remplacement module caméra",ref:"TSB-M3-2023"}],dtc:[],
-  maintenance:[{item:"Filtre habitacle",months:24},{item:"Liquide frein",months:48}]}}},
- "Model Y":{"2022-2024":{"Long Range":{power:382,cyl:0,code:"TESLA-MY",energy:"Électrique",tech:"75 kWh",
-  faults:[{title:"Ceinture passager prétensionneur",severity:"high",nature:"Rappel",ref:"Rappel NHTSA 23V-123"}],
-  tsb:[{title:"Remplacement prétensionneur",ref:"TSB-MY-2023"}],dtc:[],
-  maintenance:[{item:"Filtre HEPA",months:36}]}}}},
-"BYD":{"Atto 3":{"2023-2024":{"204ch Blade":{power:204,cyl:0,code:"BYD-ATTO3",energy:"Électrique",tech:"Blade Battery",
-  faults:[{title:"Communication multimédia",severity:"low",nature:"TSB",ref:"TSB-BYD-2023"}],
-  tsb:[{title:"MAJ OTA unité centrale",ref:"TSB-BYD-2023"}],dtc:[],
-  maintenance:[{item:"Liquide refroidissement",km:40000,months:24}]}}},
- "Seal":{"2023-2024":{"530ch AWD":{power:530,cyl:0,code:"BYD-SEAL",energy:"Électrique",tech:"82.5 kWh",
-  faults:[{title:"Usure prématurée plaquettes",severity:"medium",nature:"TSB",ref:"TSB-BYD-24-01"}],
-  tsb:[{title:"Contrôle disques tous les 20 000 km",ref:"TSB-BYD-24-01"}],dtc:[],
-  maintenance:[{item:"Liquide frein",months:24}]}}}},
-"MG":{"MG4":{"2022-2024":{"170ch 51kWh":{power:170,cyl:0,code:"MG4-EV",energy:"Électrique",tech:"51 kWh",
-  faults:[{title:"Court-circuit connecteur batterie",severity:"high",nature:"Rappel",ref:"Rappel MG-2023"}],
-  tsb:[{title:"Remplacement connecteur HV",ref:"TSB-MG4-2023"}],dtc:[],
-  maintenance:[{item:"Filtre habitacle",months:12}]}}}},
-"Alfa Romeo":{"Giulia":{"2017-2024":{"2.0 Turbo 280":{power:280,cyl:1995,code:"GME-T4",energy:"Essence",tech:"4 cyl. turbo",
-  faults:[{title:"Chaîne distribution",severity:"high",nature:"Rappel",ref:"Rappel AR-02"}],
-  tsb:[{title:"Remplacement distribution",ref:"TSB-AR-02"}],dtc:["P0016"],
-  maintenance:[{item:"Vidange",km:10000,months:12}]}}}},
-"Fiat":{"500e":{"2020-2024":{"118ch":{power:118,cyl:0,code:"500E",energy:"Électrique",tech:"42 kWh",
-  faults:[{title:"Perte communication BMS",severity:"medium",nature:"TSB",ref:"TSB-FCA-22-11"}],
-  tsb:[{title:"MAJ logiciel BMS",ref:"TSB-FCA-22-11"}],dtc:["U0111"],
-  maintenance:[{item:"Liquide frein",months:24}]}}}}
-};
-var DOMAINS=["Moteur / mécanique","Distribution","Injection / pompe HP","Allumage / préchauffage","Turbo / suralimentation","Dépollution EGR/FAP/SCR","Boîte / transmission","À-coups / vibrations","Freinage","ABS / ESP","Airbag / prétensionneurs","Ceintures / ancrages","Sièges / occupancy","Trains roulants","Géométrie / direction","Ouvrants / serrures","Clé / antidémarrage","Batterie 12 V","Réseau 48 V","Batterie haute tension","Charge AC / DC","Autonomie / consommation","Refroidissement / clim","ADAS / radar","Caméras / vision","Télématique / OTA","Écran / multimédia","Éclairage","Carrosserie / étanchéité"];
-window.Database={data:MEGA_DB,domains:DOMAINS,
- stats:function(){var b=0,m=0,e=0,f=0,d=0;for(var br in this.data){b++;for(var mo in this.data[br]){m++;for(var y in this.data[br][mo]){for(var en in this.data[br][mo][y]){e++;var o=this.data[br][mo][y][en];f+=(o.faults?o.faults.length:0)+(o.tsb?o.tsb.length:0);d+=o.dtc?o.dtc.length:0;}}}}return{brands:b,models:m,engines:e,faults:f,dtc:d};},
- expand:function(){var out={};for(var br in this.data){out[br]={};for(var mo in this.data[br]){out[br][mo]={};for(var yr in this.data[br][mo]){var p=yr.split('-'),s=+p[0],e2=+p[1]||s;for(var y=s;y<=e2;y++){out[br][mo][String(y)]=this.data[br][mo][yr];}}}}return out;},
- merge:function(nd){for(var br in nd){if(!this.data[br])this.data[br]={};for(var mo in nd[br]){if(!this.data[br][mo])this.data[br][mo]={};for(var yr in nd[br][mo]){if(!this.data[br][mo][yr])this.data[br][mo][yr]={};var tgt=this.data[br][mo][yr],src=nd[br][mo][yr];for(var en in src){tgt[en]=src[en];}}}}}return this.data;}};
-
-/* ═════════ 2. STORAGE (avec repli mémoire si WebView bloque localStorage) ═════════ */
-window.Storage=(function(){
-  var mem={},ok=true;
-  try{localStorage.setItem('__t','1');localStorage.removeItem('__t');}catch(e){ok=false;}
-  var store=ok?localStorage:{getItem:function(k){return mem[k]||null;},setItem:function(k,v){mem[k]=String(v);},removeItem:function(k){delete mem[k];}};
-  var KEY='mecadata_v7',BKEY='mecadata_backups',SKEY='mecadata_settings',timer=null;
-  return{
-    type:ok?'localStorage':'mémoire (WebView restrictif)',
-    save:function(){try{store.setItem(KEY,JSON.stringify({version:'7.1',timestamp:Date.now(),db:Database.data}));this.status(true);return true;}catch(e){this.status(false);Log.err('Save: '+e.message);return false;}},
-    load:function(){try{var r=store.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}},
-    startAutoSave:function(){var self=this;if(timer)clearInterval(timer);timer=setInterval(function(){self.save();},30000);},
-    stopAutoSave:function(){if(timer){clearInterval(timer);timer=null;}},
-    backup:function(){var d=this.load();if(!d){alert('Aucune donnée');return;}var b=[];try{b=JSON.parse(store.getItem(BKEY)||'[]');}catch(e){}b.push({db:d.db,backupTime:Date.now()});if(b.length>10)b.shift();store.setItem(BKEY,JSON.stringify(b));alert('✓ Backup créé ('+b.length+'/10)');},
-    restore:function(){var b=[];try{b=JSON.parse(store.getItem(BKEY)||'[]');}catch(e){}if(!b.length){alert('Aucun backup');return;}if(confirm('Restaurer le backup du '+new Date(b[b.length-1].backupTime).toLocaleString('fr-FR')+' ?')){store.setItem(KEY,JSON.stringify({version:'7.1',timestamp:Date.now(),db:b[b.length-1].db}));location.reload();}},
-    clearAll:function(){try{store.removeItem(KEY);store.removeItem(BKEY);store.removeItem(SKEY);}catch(e){}},
-    size:function(){try{var r=store.getItem(KEY);return r?new Blob([r]).size:0;}catch(e){return 0;}},
-    status:function(v){var el=$id('saveStatus');if(el)el.textContent=v?'✓ OK':'✗ Erreur';},
-    getSettings:function(){try{return JSON.parse(store.getItem(SKEY)||'{}');}catch(e){return{};}},
-    saveSettings:function(s){try{store.setItem(SKEY,JSON.stringify(s));}catch(e){}},
-    getRequests:function(){try{return JSON.parse(store.getItem('mecadata_requests')||'[]');}catch(e){return[];}},
-    setRequests:function(r){try{store.setItem('mecadata_requests',JSON.stringify(r));}catch(e){}},
-    raw:store
-  };
-})();
-
-/* ═════════ 3. AUTHENTIFICATION ROBUSTE ═════════ */
-window.Auth={
-  CREDS:{admin:'Kevin83600',tiers:'expert83'},
-  current:null,expected:null,fails:0,
-  prompt:function(role){this.expected=role;$id('pwdTitle').textContent=role==='admin'?'🔒 Administrateur':'👁 Accès Tiers';$id('pwdError').textContent='';$id('pwdModal').classList.add('active');var i=$id('pwdInput');i.value='';setTimeout(function(){i.focus();},120);},
-  close:function(){$id('pwdModal').classList.remove('active');this.expected=null;},
-  validate:function(){
-    var inp=$id('pwdInput'),val=(inp.value||'').trim(),role=this.expected;
-    if(!role){this.close();return;}
-    if(val===this.CREDS[role]){
-      this.current=role;this.fails=0;this.close();
-      Log.ok('Auth OK → '+role);
-      safe('loadDashboard',function(){UI.loadDashboard();});
-    }else{
-      this.fails++;
-      $id('pwdError').textContent='✗ Mot de passe incorrect (essai '+this.fails+'). Vérifiez majuscules/espaces.';
-      inp.value='';inp.focus();
-      Log.err('Auth échec rôle '+role+' (essai '+this.fails+')');
-    }
-  },
-  logout:function(){if(!confirm('Déconnexion ?'))return;this.current=null;$id('dashboard').classList.remove('active');$id('loginScreen').classList.add('active');Storage.stopAutoSave();},
-  showRequestForm:function(){$id('requestModal').classList.add('active');setTimeout(function(){$id('reqName').focus();},120);},
-  closeRequest:function(){$id('requestModal').classList.remove('active');},
-  submitRequest:function(){var n=($id('reqName').value||'').trim();if(n.length<2||n.length>24){alert('Prénom invalide (2-24 lettres)');return;}var r=Storage.getRequests();r.push({name:n,time:Date.now(),status:'pending'});Storage.setRequests(r);alert('✓ Demande envoyée à l\'administrateur');this.closeRequest();},
-  isAdmin:function(){return this.current==='admin';}
-};
-document.addEventListener('keydown',function(e){if(e.key==='Enter'&&$id('pwdModal').classList.contains('active')){e.preventDefault();Auth.validate();}});
-
-/* ═════════ 4. DIAGNOSTIC ═════════ */
-window.Diag={db:null,
- init:function(){this.db=Database.expand();this.fillBrands();this.bindTabs();},
- fillBrands:function(){var s=$id('selBrand');s.innerHTML='<option value="">Toutes les marques</option>';Object.keys(this.db).sort().forEach(function(b){s.innerHTML+='<option value="'+b+'">'+b+'</option>';});},
- quick:function(v){var t=norm(v),s=$id('selBrand');Array.prototype.forEach.call(s.options,function(o){if(!o.value)return;o.style.display=(!t||norm(o.value).indexOf(t)>-1)?'':'none';});},
- onBrand:function(){var b=$id('selBrand').value,s=$id('selModel');s.innerHTML='<option value="">Choisir…</option>';this.resetDown();if(b&&this.db[b])Object.keys(this.db[b]).sort().forEach(function(m){s.innerHTML+='<option value="'+m+'">'+m+'</option>';});this.run();},
- onModel:function(){var b=$id('selBrand').value,m=$id('selModel').value,s=$id('selYear');s.innerHTML='<option value="">Toutes</option>';this.resetDown(true);if(b&&m&&this.db[b][m])Object.keys(this.db[b][m]).sort().forEach(function(y){s.innerHTML+='<option value="'+y+'">'+y+'</option>';});this.run();},
- onYear:function(){var b=$id('selBrand').value,m=$id('selModel').value,y=$id('selYear').value,s=$id('selEngine');s.innerHTML='<option value="">Toutes</option>';this.resetDown(false,true);if(b&&m&&y&&this.db[b][m][y])Object.keys(this.db[b][m][y]).sort().forEach(function(e){s.innerHTML+='<option value="'+e+'">'+e+'</option>';});this.run();},
- onEngine:function(){var b=$id('selBrand').value,m=$id('selModel').value,y=$id('selYear').value,e=$id('selEngine').value,s=$id('selPower');s.innerHTML='<option value="">Toutes</option>';if(b&&m&&y&&e&&this.db[b][m][y][e]){var d=this.db[b][m][y][e];s.innerHTML+='<option value="'+d.power+'">'+d.power+' ch ('+Math.round(d.power*0.7457)+' kW) · '+d.energy+'</option>';}this.run();},
- resetDown:function(y,e2){if(y)$id('selYear').innerHTML='<option value="">Toutes</option>';if(e2){$id('selEngine').innerHTML='<option value="">Toutes</option>';$id('selPower').innerHTML='<option value="">Toutes</option>';}},
- run:function(){
-  var b=$id('selBrand').value,m=$id('selModel').value,y=$id('selYear').value,e=$id('selEngine').value,p=$id('selPower').value;
-  var ra=$id('resultsArea'),nr=$id('noResults');
-  if(!b||!m||!y||!e||!p){ra.classList.add('hidden');nr.classList.remove('hidden');return;}
-  ra.classList.remove('hidden');nr.classList.add('hidden');
-  var d=this.db[b][m][y][e],sev=$id('fSeverity').value,nat=$id('fNature').value,sort=$id('fSort').value;
-  var faults=(d.faults||[]).slice();
-  if(sev)faults=faults.filter(function(f){return f.severity===sev;});
-  if(nat)faults=faults.filter(function(f){return f.nature===nat;});
-  var ord={critical:0,high:1,medium:2,low:3,info:4};
-  if(sort==='severity')faults.sort(function(a,b2){return ord[a.severity]-ord[b2.severity];});
-  if(sort==='alpha')faults.sort(function(a,b2){return a.title.localeCompare(b2.title);});
-  $id('listFaults').innerHTML=faults.length?faults.map(function(f){return '<li class="'+f.severity+'"><span class="tag tag-'+f.severity+'">'+f.severity.toUpperCase()+'</span><span class="tag-nature tag-'+(f.nature||'panne').toLowerCase()+'">'+(f.nature||'Panne')+'</span><strong>'+f.title+'</strong><br><small>'+(f.symptoms||'')+'</small><br><small class="muted">Réf: '+f.ref+' · '+(f.source||'')+'</small></li>';}).join(''):'<li class="info">✅ Aucune panne répertoriée pour cette configuration.</li>';
-  var tsb=d.tsb||[];
-  $id('listTsb').innerHTML=tsb.length?tsb.map(function(t){return '<li><span class="tag tag-tsb">TSB</span><strong>'+t.title+'</strong><br><small>'+(t.scope||'')+'</small><br><small class="muted">Réf: '+t.ref+'</small></li>';}).join(''):'<li class="info">Aucun TSB enregistré.</li>';
-  var dtcs=d.dtc||[];
-  $id('dtcDecoder').innerHTML=dtcs.length?'<p style="margin-bottom:10px"><strong>Codes DTC corrélés :</strong></p>'+dtcs.map(function(c){return '<span class="dtc-chip">'+c+'</span>';}).join(''):'<p class="muted">Aucun DTC spécifique.</p>';
-  var mt=d.maintenance||[];
-  $id('listMaint').innerHTML=mt.length?mt.map(function(x){return '<li><strong>'+x.item+'</strong><br><small>'+(x.km?'📏 '+x.km.toLocaleString('fr-FR')+' km ':'')+(x.months?'📅 '+x.months+' mois ':'')+(x.spec?'· 🔧 '+x.spec:'')+'</small></li>';}).join(''):'<li class="info">Se référer au carnet constructeur.</li>';
-  $id('countFaults').textContent=faults.length;$id('countTsb').textContent=tsb.length;$id('countDtc').textContent=dtcs.length;$id('countMaint').textContent=mt.length;
- },
- clear:function(){$id('selBrand').value='';$id('selModel').innerHTML='<option value="">Choisir…</option>';this.resetDown();this.resetDown(true,true);$id('quickSearch').value='';this.quick('');this.run();},
- bindTabs:function(){Array.prototype.forEach.call(document.querySelectorAll('.r-tab'),function(btn){btn.addEventListener('click',function(){Array.prototype.forEach.call(document.querySelectorAll('.r-tab'),function(b){b.classList.remove('active');});Array.prototype.forEach.call(document.querySelectorAll('.r-pane'),function(p){p.classList.remove('active');});btn.classList.add('active');$id('r-'+btn.getAttribute('data-rtab')).classList.add('active');});});}
-};
-
-/* ═════════ 5. CATALOGUE ═════════ */
-window.Catalogue={page:1,perPage:60,ft:'',
- all:function(){var out=[];for(var br in Database.data)for(var mo in Database.data[br])for(var yr in Database.data[br][mo])for(var en in Database.data[br][mo][yr]){var d=Database.data[br][mo][yr][en];out.push({brand:br,model:mo,years:yr,engine:en,power:d.power,cyl:d.cyl,energy:d.energy});}return out.sort(function(a,b){return a.brand.localeCompare(b.brand);});},
- render:function(){var items=this.all();if(this.ft){var t=norm(this.ft);items=items.filter(function(i){return norm(JSON.stringify(i)).indexOf(t)>-1;});}
-  $id('catCount').textContent=items.length+' motorisations · page '+this.page;
-  var total=Math.max(1,Math.ceil(items.length/this.perPage));if(this.page>total)this.page=total;
-  var pg=items.slice((this.page-1)*this.perPage,this.page*this.perPage);
-  $id('catalogueGrid').innerHTML=pg.map(function(i){return '<div class="catalogue-item"><div class="brand-line">'+i.brand+'</div><div>'+i.model+'</div><div class="engine-line">'+i.engine+' · '+i.years+'</div><div class="power-line"><span>⚡ '+i.power+' ch</span><span>🔋 '+i.energy+'</span><span>⚙ '+i.cyl+' cm³</span></div></div>';}).join('');
-  $id('catPagination').innerHTML='<button type="button" class="btn-sm" onclick="Catalogue.prev()">← Préc</button><span class="muted" style="padding:0 12px">Page '+this.page+' / '+total+'</span><button type="button" class="btn-sm" onclick="Catalogue.next()">Suiv →</button>';},
- filter:function(v){this.ft=v;this.page=1;this.render();},
- next:function(){this.page++;this.render();},prev:function(){if(this.page>1)this.page--;this.render();},
- export:function(){var blob=new Blob([JSON.stringify(this.all(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='catalogue_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-};
-
-/* ═════════ 6. TSB + DOMAINES ═════════ */
-window.TSB={domain:null,
- all:function(){var out=[];for(var br in Database.data)for(var mo in Database.data[br])for(var yr in Database.data[br][mo])for(var en in Database.data[br][mo][yr]){var d=Database.data[br][mo][yr][en];(d.faults||[]).forEach(function(f){out.push({brand:br,model:mo,years:yr,engine:en,title:f.title,severity:f.severity,nature:f.nature,symptoms:f.symptoms,ref:f.ref});});(d.tsb||[]).forEach(function(t){out.push({brand:br,model:mo,years:yr,engine:en,title:t.title,severity:'info',nature:'TSB',symptoms:t.scope,ref:t.ref});});}return out;},
- chips:function(){var h='<span class="domain-chip active" onclick="TSB.setDomain(null,this)">Tous</span>';DOMAINS.forEach(function(d){h+='<span class="domain-chip" onclick="TSB.setDomain(\''+d.replace(/'/g,'')+'\',this)">'+d+'</span>';});$id('domainChips').innerHTML=h;},
- setDomain:function(d,el){this.domain=d;Array.prototype.forEach.call(document.querySelectorAll('.domain-chip'),function(c){c.classList.remove('active');});if(el)el.classList.add('active');this.render();},
- render:function(){var items=this.all();if(this.domain)items=items.filter(function(i){return norm(i.title+' '+(i.symptoms||'')).indexOf(norm(this.domain))>-1;},this);
-  $id('tsbList').innerHTML=items.length?items.slice(0,200).map(function(i){return '<div class="tsb-card"><h4>'+i.title+'</h4><div class="tsb-meta"><span class="tag tag-'+i.severity+'">'+i.severity.toUpperCase()+'</span><span class="tag-nature tag-'+(i.nature||'tsb').toLowerCase()+'">'+i.nature+'</span><span class="muted">'+i.brand+' · '+i.model+' · '+i.engine+' · '+i.years+'</span></div>'+(i.symptoms?'<div class="muted">'+i.symptoms+'</div>':'')+'<small class="muted">Réf: '+i.ref+'</small></div>';}).join(''):'<div class="info-card glass"><p>Aucune fiche pour ce filtre.</p></div>';}
-};
-window.Domains={init:function(){var all=TSB.all();$id('domainsGrid').innerHTML=DOMAINS.map(function(d){var c=all.filter(function(i){return norm(i.title+' '+(i.symptoms||'')).indexOf(norm(d))>-1;}).length;return '<div class="domain-card" onclick="UI.showPanel(\'tsb\');TSB.setDomain(\''+d.replace(/'/g,'')+'\',null);TSB.chips()"><div class="count">'+c+'</div><div class="name">'+d+'</div></div>';}).join('');}};
-
-/* ═════════ 7. IMPORT UNIVERSEL ═════════ */
-window.Importer={pending:null,
- init:function(){var z=$id('dropZone'),inp=$id('importFile');if(!z)return;
-  z.addEventListener('dragover',function(e){e.preventDefault();});
-  z.addEventListener('drop',function(e){e.preventDefault();Importer.process(e.dataTransfer.files);});
-  inp.addEventListener('change',function(){Importer.process(inp.files);inp.value='';});},
- process:function(files){var done=0,total=0;Array.prototype.forEach.call(files,function(f){var r=new FileReader();r.onload=function(){try{var d=Importer.parse(f.name,r.result);var n=Object.keys(d).length;total+=n;Database.merge(d);}catch(e){Log.err(f.name+' : '+e.message);}done++;if(done===files.length&&total>0){Storage.save();safe('refresh',function(){Diag.init();Catalogue.render();TSB.render();});alert('✓ '+total+' entrée(s) fusionnée(s)');}};r.readAsText(f);});},
- parse:function(name,text){var ext=name.split('.').pop().toLowerCase();
-  if(ext==='json')return JSON.parse(text);
-  if(ext==='csv')return this.csv(text);
-  if(ext==='xml')return this.xml(text);
-  if(ext==='txt')return this.txt(text);
-  throw new Error('Format .'+ext+' non supporté');},
- csv:function(t){var L=t.trim().split('\n');if(L.length<2)throw new Error('CSV vide');var H=L[0].split(',').map(function(h){return norm(h);});var d={};for(var i=1;i<L.length;i++){var v=L[i].split(','),r={};H.forEach(function(h,j){r[h]=(v[j]||'').trim();});var b=r.brand||r.marque,m=r.model||r.modele;if(!b||!m)continue;d[b]=d[b]||{};d[b][m]=d[b][m]||{};var y=r.year||r.annee||'2020-2024';d[b][m][y]=d[b][m][y]||{};var e=r.engine||r.moteur||'Unknown';d[b][m][y][e]={power:parseInt(r.power||r.puissance,10)||0,cyl:parseInt(r.cyl||r.cylindree,10)||0,energy:r.energy||r.energie||'Essence',faults:r.faults?[{title:r.faults,severity:r.severity||'medium',nature:r.nature||'Panne',ref:r.ref||'N/A',symptoms:r.symptoms||''}]:[],tsb:[],dtc:[],maintenance:[]};}return d;},
- xml:function(t){var doc=new DOMParser().parseFromString(t,'text/xml'),d={},vs=doc.getElementsByTagName('vehicle');for(var i=0;i<vs.length;i++){var v=vs[i],b=v.getAttribute('brand'),m=v.getAttribute('model');if(!b||!m)continue;d[b]=d[b]||{};d[b][m]=d[b][m]||{};var y=v.getAttribute('year')||'2020-2024';d[b][m][y]=d[b][m][y]||{};var e=v.getAttribute('engine')||'Unknown';d[b][m][y][e]={power:parseInt(v.getAttribute('power'),10)||0,faults:[],tsb:[],dtc:[],maintenance:[]};}return d;},
- txt:function(t){var d={},b,m,y,e;var L=t.split('\n');for(var i=0;i<L.length;i++){var s=L[i].trim();if(s.indexOf('BRAND:')===0){b=s.slice(6).trim();d[b]=d[b]||{};}else if(s.indexOf('MODEL:')===0&&b){m=s.slice(6).trim();d[b][m]=d[b][m]||{};}else if(s.indexOf('YEAR:')===0&&b&&m){y=s.slice(5).trim();d[b][m][y]=d[b][m][y]||{};}else if(s.indexOf('ENGINE:')===0&&b&&m&&y){e=s.slice(7).trim();d[b][m][y][e]={power:0,faults:[],tsb:[],dtc:[],maintenance:[]};}}return d;},
- fromText:function(){var t=($id('importText').value||'').trim();if(!t){alert('Texte vide');return;}try{var d=JSON.parse(t);this.pending=d;this.preview(d);}catch(e){alert('JSON invalide : '+e.message);}},
- preview:function(d){$id('previewCount').textContent=Object.keys(d).length;$id('previewContent').textContent=JSON.stringify(d,null,2).slice(0,2000);$id('importPreview').classList.remove('hidden');},
- confirm:function(){if(!this.pending)return;Database.merge(this.pending);Storage.save();safe('refresh',function(){Diag.init();Catalogue.render();TSB.render();});$id('importPreview').classList.add('hidden');$id('importText').value='';this.pending=null;alert('✓ Fusion effectuée');},
- cancel:function(){this.pending=null;$id('importPreview').classList.add('hidden');}
-};
-
-/* ═════════ 8. MANAGER APK ═════════ */
-window.Manager={auto:true,interval:24,url:'',timer:null,lastCheck:null,
- init:function(){var s=Storage.getSettings();this.auto=s.auto!==false;this.interval=s.interval||24;this.url=s.url||'https://expertkevin06-cell.github.io/V2newprojet2026/data/';this.lastCheck=s.lastCheck||null;
-  if($id('autoUpdate'))$id('autoUpdate').checked=this.auto;
-  if($id('updateInterval'))$id('updateInterval').value=this.interval;
-  if($id('updateUrl'))$id('updateUrl').value=this.url;
-  if($id('lastCheck'))$id('lastCheck').textContent=this.lastCheck||'Jamais';
-  this.stats();this.schedule();},
- persist:function(){Storage.saveSettings({auto:this.auto,interval:this.interval,url:this.url,lastCheck:this.lastCheck});},
- setAutoUpdate:function(v){this.auto=!!v;this.persist();this.schedule();},
- setIntervalH:function(v){this.interval=Math.max(1,Math.min(168,parseInt(v,10)||24));this.persist();this.schedule();},
- setUrl:function(v){this.url=v;this.persist();},
- schedule:function(){if(this.timer)clearInterval(this.timer);if(this.auto)this.timer=setInterval(function(){Manager.checkNow(true);},this.interval*3600000);},
- checkNow:function(silent){this.lastCheck=new Date().toLocaleString('fr-FR');if($id('lastCheck'))$id('lastCheck').textContent=this.lastCheck;this.persist();
-  var self=this;fetch(this.url+'update.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(j){if(j&&j.database){Database.merge(j.database);Storage.save();if(!silent)alert('✓ MAJ distante fusionnée');safe('refresh',function(){Diag.init();Catalogue.render();});}else if(!silent)alert('✓ Base à jour');}).catch(function(e){if(!silent)alert('⚠ Hors ligne / serveur injoignable — base locale conservée ('+e.message+')');Log.err('MAJ: '+e.message);});},
- exportFull:function(){var apk={version:'7.1.0',build:Date.now(),database:Database.data,settings:Storage.getSettings(),requests:Storage.getRequests()};var blob=new Blob([JSON.stringify(apk,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mecadata_expert_v7_'+new Date().toISOString().slice(0,10)+'.json';a.click();alert('✓ APK exportée');},
- importAPK:function(){var inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=function(){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var apk=JSON.parse(r.result);if(!apk.database)throw new Error('Format APK invalide');if(!confirm('Importer APK v'+(apk.version||'?')+' ?'))return;Database.data=apk.database;Storage.save();alert('✓ APK importée');location.reload();}catch(e){alert('✗ '+e.message);}};r.readAsText(f);};inp.click();},
- createBackup:function(){Storage.backup();this.stats();},
- restoreBackup:function(){Storage.restore();},
- stats:function(){var sz=Storage.size();if($id('storageUsed'))$id('storageUsed').textContent=sz>1048576?(sz/1048576).toFixed(2)+' Mo':(sz/1024).toFixed(1)+' Ko';
-  var b=[];try{b=JSON.parse(Storage.raw.getItem('mecadata_backups')||'[]');}catch(e){}
-  if($id('backupCount'))$id('backupCount').textContent=b.length;
-  if($id('lastBackup'))$id('lastBackup').textContent=b.length?new Date(b[b.length-1].backupTime).toLocaleString('fr-FR'):'Jamais';},
- resetAll:function(){if(!Auth.isAdmin()){alert('Réservé administrateur');return;}if(!confirm('⚠ TOUT réinitialiser ?'))return;Storage.clearAll();location.reload();},
- purgeCache:function(){if('caches'in window)caches.keys().then(function(n){n.forEach(function(x){caches.delete(x);});});alert('✓ Cache purgé');},
- revokeAll:function(){if(!Auth.isAdmin())return;if(!confirm('Révoquer tous les tiers ?'))return;Storage.setRequests([]);UI.renderTiers();}
-};
-
-/* ═════════ 9. UI ═════════ */
-window.UI={tierStatus:'all',
- init:function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(btn){btn.addEventListener('click',function(){UI.showPanel(btn.getAttribute('data-tab'));});});},
- showPanel:function(n){var btn=document.querySelector('.tab[data-tab="'+n+'"]');if(btn&&btn.classList.contains('hidden')){alert('Accès réservé administrateur');return;}Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.remove('active');});Array.prototype.forEach.call(document.querySelectorAll('.tab-content'),function(c){c.classList.remove('active');});if(btn)btn.classList.add('active');var p=$id('tab-'+n);if(p)p.classList.add('active');},
- loadDashboard:function(){
-  $id('loginScreen').classList.remove('active');$id('dashboard').classList.add('active');
-  var badge=$id('userBadge');
-  if(Auth.isAdmin()){badge.textContent='ADMINISTRATEUR';badge.className='badge badge-admin';$id('adminPanel').classList.remove('hidden');Array.prototype.forEach.call(document.querySelectorAll('.admin-only'),function(el){el.classList.remove('hidden');});}
-  else{badge.textContent='TIERS';badge.className='badge badge-tiers';$id('adminPanel').classList.add('hidden');Array.prototype.forEach.call(document.querySelectorAll('.admin-only'),function(el){el.classList.add('hidden');});var bm=$id('btnManager');if(bm)bm.style.display='none';}
-  safe('stats',function(){var s=Database.stats();$id('sBrands').textContent=s.brands;$id('sModels').textContent=s.models;$id('sEngines').textContent=s.engines;$id('sFaults').textContent=s.faults;$id('sDtc').textContent=s.dtc;$id('sSize').textContent=(Storage.size()/1024).toFixed(1)+' Ko';$id('integrityStatus').textContent=s.engines+' motorisations ✓';$id('sessionHash').textContent=Math.random().toString(36).slice(2,14);$id('lastSync').textContent=new Date().toLocaleString('fr-FR');$id('storageType').textContent=Storage.type;});
-  Storage.startAutoSave();
-  safe('Diag',function(){Diag.init();});
-  safe('Catalogue',function(){Catalogue.render();});
-  safe('TSB',function(){TSB.chips();TSB.render();});
-  safe('Domains',function(){Domains.init();});
-  safe('Tiers',function(){UI.renderTiers();});
-  Log.ok('Dashboard chargé ('+Auth.current+')');
- },
- renderTiers:function(){var rs=Storage.getRequests();var f=this.tierStatus;var list=f==='all'?rs:rs.filter(function(r){return r.status===f;});
-  $id('tiersList').innerHTML=list.length?list.map(function(r){var i=rs.indexOf(r);return '<div class="tier-item"><div><strong>'+r.name+'</strong><br><small class="muted">Demandé le '+new Date(r.time).toLocaleString('fr-FR')+'</small></div><span class="tag tag-'+(r.status==='approved'?'info':r.status==='denied'?'critical':'medium')+'">'+r.status.toUpperCase()+'</span><div class="tier-actions">'+(r.status==='pending'?'<button type="button" class="tier-btn approve" onclick="UI.tierAction('+i+',\'approved\')">✓</button><button type="button" class="tier-btn deny" onclick="UI.tierAction('+i+',\'denied\')">✗</button>':'')+(r.status==='approved'?'<button type="button" class="tier-btn revoke" onclick="UI.tierAction('+i+',\'revoked\')">Révoquer</button>':'')+'</div></div>';}).join(''):'<div class="info-card glass"><p>Aucune demande.</p></div>';},
- tierFilter:function(s,el){this.tierStatus=s;Array.prototype.forEach.call(document.querySelectorAll('.filter-btn'),function(b){b.classList.remove('active');});if(el)el.classList.add('active');this.renderTiers();},
- tierAction:function(i,st){var rs=Storage.getRequests();if(rs[i]){rs[i].status=st;Storage.setRequests(rs);this.renderTiers();}}
-};
-
-/* ═════════ 10. ANIMATIONS ═════════ */
-window.Animations={init:function(){safe('canvas',this.canvas);safe('tools',this.tools);},
- canvas:function(){var c=$id('particleCanvas');if(!c)return;var ctx=c.getContext('2d');function rz(){c.width=window.innerWidth;c.height=window.innerHeight;}rz();window.addEventListener('resize',rz);
-  var P=[];for(var i=0;i<45;i++)P.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*2+1});
-  (function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='rgba(59,130,246,.4)';P.forEach(function(p){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>c.width)p.vx*=-1;if(p.y<0||p.y>c.height)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.283);ctx.fill();});requestAnimationFrame(draw);})();},
- tools:function(){setInterval(function(){var w=$id('wrench');if(w)w.style.transform='translate('+((Math.random()-.5)*150)+'px,'+((Math.random()-.5)*100)+'px) rotate('+((Math.random()-.5)*20)+'deg)';},4000);
-  setInterval(function(){var o=$id('oilCan');if(o)o.style.transform='translate('+((Math.random()-.5)*120)+'px,'+((Math.random()-.5)*80)+'px) rotate('+((Math.random()-.5)*25)+'deg)';},5000);}
-};
-
-/* ═════════ 11. BOOT AUTO-DIAGNOSTIC ═════════ */
-function boot(){
-  $id('buildTag').textContent='v7.1 · '+new Date().toISOString().slice(0,10);
-  safe('mergeSaved',function(){var s=Storage.load();if(s&&s.db)Database.merge(s.db);});
-  safe('loginStats',function(){var st=Database.stats();$id('loginStats').textContent=st.brands+'+ marques · '+st.models+'+ modèles · '+st.engines+'+ motorisations · '+st.faults+'+ fiches';});
-  safe('Animations',function(){Animations.init();});
-  safe('UI',function(){UI.init();});
-  safe('Importer',function(){Importer.init();});
-  safe('Manager',function(){Manager.init();});
-  Log.ok('BOOT OK — v7.1 · storage='+Storage.type+' · '+Database.stats().engines+' motorisations');
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-</script>
+<!-- SCRIPTS — ORDRE IMPORTANT -->
+<script src="js/database.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/importer.js"></script>
+<script src="js/diagnostic.js"></script>
+<script src="js/catalogue.js"></script>
+<script src="js/tsb.js"></script>
+<script src="js/manager.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/core.js"></script>
 </body>
 </html>
