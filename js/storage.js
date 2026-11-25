@@ -1,70 +1,91 @@
-// Gestion de la sauvegarde locale (localStorage)
-class LocalStorage {
-    constructor() {
-        this.STORAGE_KEY = 'mecadata_expert_v5';
-        this.AUTO_SAVE_INTERVAL = 30000; // 30 secondes
-        this.autoSaveTimer = null;
+window.Storage = {
+  KEY: 'mecadata_v7',
+  BACKUP_KEY: 'mecadata_backups',
+  SETTINGS_KEY: 'mecadata_settings',
+  AUTO_SAVE_MS: 30000,
+  timer: null,
+  
+  save() {
+    try {
+      const data = {
+        version: '7.0',
+        timestamp: Date.now(),
+        db: window.Database.data,
+        stats: window.Database.stats()
+      };
+      localStorage.setItem(this.KEY, JSON.stringify(data));
+      console.log('✓ Sauvegarde locale OK');
+      this.updateStatus(true);
+      return true;
+    } catch (e) {
+      console.error('✗ Erreur save:', e);
+      this.updateStatus(false);
+      return false;
     }
-
-    save(data) {
-        try {
-            const saveData = {
-                timestamp: Date.now(),
-                version: '5.0',
-                data: data
-            };
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(saveData));
-            console.log('✓ Sauvegarde locale effectuée');
-            return true;
-        } catch (error) {
-            console.error('✗ Erreur de sauvegarde:', error);
-            return false;
-        }
+  },
+  
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      console.log(`✓ DB chargée du ${new Date(data.timestamp).toLocaleString()}`);
+      return data;
+    } catch (e) {
+      return null;
     }
-
-    load() {
-        try {
-            const saved = localStorage.getItem(this.STORAGE_KEY);
-            if (!saved) return null;
-            
-            const parsed = JSON.parse(saved);
-            console.log(`✓ Données chargées depuis sauvegarde locale (${new Date(parsed.timestamp).toLocaleString()})`);
-            return parsed.data;
-        } catch (error) {
-            console.error('✗ Erreur de chargement:', error);
-            return null;
-        }
+  },
+  
+  startAutoSave() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this.save(), this.AUTO_SAVE_MS);
+  },
+  
+  stopAutoSave() {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+  },
+  
+  backup() {
+    const data = this.load();
+    if (!data) { alert('Aucune donnée à sauvegarder'); return; }
+    let backups = JSON.parse(localStorage.getItem(this.BACKUP_KEY) || '[]');
+    backups.push({ ...data, backupTime: Date.now() });
+    if (backups.length > 10) backups.shift();
+    localStorage.setItem(this.BACKUP_KEY, JSON.stringify(backups));
+    alert(`✓ Backup créé (${backups.length}/10)`);
+  },
+  
+  restore() {
+    const backups = JSON.parse(localStorage.getItem(this.BACKUP_KEY) || '[]');
+    if (!backups.length) { alert('Aucun backup disponible'); return; }
+    const last = backups[backups.length - 1];
+    if (confirm(`Restaurer le backup du ${new Date(last.backupTime).toLocaleString()} ?`)) {
+      localStorage.setItem(this.KEY, JSON.stringify(last));
+      location.reload();
     }
-
-    startAutoSave(saveFunction) {
-        this.autoSaveTimer = setInterval(() => {
-            saveFunction();
-        }, this.AUTO_SAVE_INTERVAL);
-        console.log(`✓ Sauvegarde automatique activée (toutes les ${this.AUTO_SAVE_INTERVAL / 1000}s)`);
-    }
-
-    stopAutoSave() {
-        if (this.autoSaveTimer) {
-            clearInterval(this.autoSaveTimer);
-            this.autoSaveTimer = null;
-        }
-    }
-
-    clear() {
-        localStorage.removeItem(this.STORAGE_KEY);
-        console.log('✓ Sauvegarde locale effacée');
-    }
-
-    getStats() {
-        const saved = localStorage.getItem(this.STORAGE_KEY);
-        if (!saved) return { size: 0, lastSave: null };
-        
-        return {
-            size: new Blob([saved]).size,
-            lastSave: new Date(JSON.parse(saved).timestamp)
-        };
-    }
-}
-
-// Instance globale
-window.storage = new LocalStorage();
+  },
+  
+  clear() {
+    localStorage.removeItem(this.KEY);
+    alert('✓ Données effacées');
+    location.reload();
+  },
+  
+  size() {
+    const raw = localStorage.getItem(this.KEY);
+    return raw ? new Blob([raw]).size : 0;
+  },
+  
+  updateStatus(ok) {
+    const el = document.getElementById('saveStatus');
+    if (el) el.textContent = ok ? '✓ OK' : '✗ Erreur';
+  },
+  
+  getSettings() {
+    return JSON.parse(localStorage.getItem(this.SETTINGS_KEY) || '{}');
+  },
+  
+  saveSettings(s) {
+    localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(s));
+  }
+};
