@@ -1,367 +1,434 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MECADATA // EXPERT v6.0 - Mega Base Fusion</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/dashboard.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MECADATA // EXPERT v7.0 FUSION</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
-    <!-- Fond d'écran animé -->
-    <div class="animated-background" id="animatedBg">
-        <div class="mechanic-tools">
-            <div class="wrench" id="wrench"></div>
-            <div class="oil-can" id="oilCan"></div>
-            <div class="bubble bubble-1"></div>
-            <div class="bubble bubble-2"></div>
-            <div class="bubble bubble-3"></div>
-            <div class="bubble bubble-4"></div>
-            <div class="bubble bubble-5"></div>
-            <div class="bubble bubble-6"></div>
+
+<!-- ═══════════ FOND DYNAMIQUE ═══════════ -->
+<div class="bg-animated" id="bgAnimated">
+  <canvas id="particleCanvas"></canvas>
+  <div class="floating-tool wrench-tool" id="wrench"></div>
+  <div class="floating-tool oil-can-tool" id="oilCan"></div>
+  <div class="bubbles">
+    <span class="bubble"></span><span class="bubble"></span>
+    <span class="bubble"></span><span class="bubble"></span>
+    <span class="bubble"></span><span class="bubble"></span>
+  </div>
+</div>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-card glass">
+    <div class="logo-header">
+      <div class="logo-title">MECADATA<span class="sep">//</span>EXPERT</div>
+      <div class="logo-version">v7.0 · FUSION MASSIVE</div>
+    </div>
+    <p class="subtitle">Console technique 2017→2027<br>
+    <span class="highlight">112+ marques · 702+ modèles · 2831+ motorisations · 194+ fiches</span></p>
+    <button class="role-btn btn-admin" onclick="Auth.prompt('admin')">
+      <span class="icon">🔒</span>
+      <span>
+        <strong>ADMINISTRATEUR</strong>
+        <small>Contrôle total · Base · Import · Export</small>
+      </span>
+    </button>
+    <button class="role-btn btn-tiers" onclick="Auth.prompt('tiers')">
+      <span class="icon">👁</span>
+      <span>
+        <strong>ACCÈS TIERS</strong>
+        <small>Consultation · Recherche · Impression</small>
+      </span>
+    </button>
+    <button class="role-btn btn-request" onclick="Auth.showRequestForm()">
+      <span class="icon">✉</span>
+      <span>
+        <strong>DEMANDER UN ACCÈS</strong>
+        <small>Nouveau technicien</small>
+      </span>
+    </button>
+    <div class="footer-info">
+      <small>🔐 Base livrée hors ligne · Aucune donnée transmise<br>
+      Sauvegarde locale automatique · Session chiffrée</small>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL PASSWORD ═══════════ -->
+<div id="pwdModal" class="modal">
+  <div class="modal-card glass">
+    <h3 id="pwdTitle">Authentification</h3>
+    <p class="muted">Le mot de passe résiduel est effacé à chaque lancement.</p>
+    <input type="password" id="pwdInput" placeholder="••••••••" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="Auth.validate()">Valider</button>
+      <button class="btn-ghost" onclick="Auth.close()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL DEMANDE ACCÈS ═══════════ -->
+<div id="requestModal" class="modal">
+  <div class="modal-card glass">
+    <h3>Demande d'accès tiers</h3>
+    <p class="muted">L'administrateur recevra votre demande en temps réel.</p>
+    <input type="text" id="reqName" placeholder="Votre prénom (2-24 lettres)">
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="Auth.submitRequest()">Envoyer</button>
+      <button class="btn-ghost" onclick="Auth.closeRequest()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div id="dashboard" class="screen">
+  <!-- Header -->
+  <header class="topbar glass">
+    <div class="topbar-left">
+      <div class="logo-mini">MECADATA<span class="sep">//</span>EXPERT</div>
+      <span id="userBadge" class="badge badge-tiers">TIERS</span>
+    </div>
+    <div class="topbar-center">
+      <div class="auto-check">
+        <span class="pulse-dot green"></span>
+        <span id="integrityStatus">14/14 ✓</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="UI.showPanel('manager')" title="Gestionnaire">⚙</button>
+      <button class="icon-btn" onclick="Storage.save()" title="Sauvegarder">💾</button>
+      <button class="icon-btn danger" onclick="Auth.logout()" title="Déconnexion">⏻</button>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tabs glass">
+    <button class="tab active" data-tab="diag">🔍 Diagnostic Expert</button>
+    <button class="tab" data-tab="catalogue">📚 Catalogue Motorisations</button>
+    <button class="tab" data-tab="tsb">📋 Fiches & TSB</button>
+    <button class="tab" data-tab="domains">🧩 Domaines Techniques</button>
+    <button class="tab admin-only hidden" data-tab="import">📥 Import Massif</button>
+    <button class="tab admin-only hidden" data-tab="manager">⚙ Gestionnaire APK</button>
+    <button class="tab admin-only hidden" data-tab="tiers">👥 Gestion Tiers</button>
+  </nav>
+
+  <!-- ═══════ TAB: DIAGNOSTIC ═══════ -->
+  <section class="tab-content active" id="tab-diag">
+    
+    <!-- Panneau Admin -->
+    <div id="adminPanel" class="admin-panel glass hidden">
+      <div class="admin-header">
+        <h3>⚙ Panneau Administrateur</h3>
+        <div class="admin-stats">
+          <div class="stat-chip"><strong id="sBrands">0</strong> marques</div>
+          <div class="stat-chip"><strong id="sModels">0</strong> modèles</div>
+          <div class="stat-chip"><strong id="sEngines">0</strong> motorisations</div>
+          <div class="stat-chip"><strong id="sFaults">0</strong> fiches</div>
+          <div class="stat-chip"><strong id="sDtc">0</strong> DTC</div>
+          <div class="stat-chip"><strong id="sSize">0 Ko</strong> base</div>
         </div>
-    </div>
-
-    <!-- Écran de connexion -->
-    <div id="login-screen" class="screen">
-        <div class="login-container">
-            <div class="logo">
-                <h1>MECADATA</h1>
-                <span class="separator">//</span>
-                <h2>EXPERT v6.0</h2>
-            </div>
-            <p class="subtitle">Console technique 2017→2027<br>Mega Base : 151+ marques, 600+ modèles, 3000+ motorisations<br>10000+ pannes, TSB et rappels</p>
-            
-            <button class="role-btn btn-admin" onclick="showPasswordPrompt('admin')">
-                🔒 ADMINISTRATEUR
-            </button>
-            <button class="role-btn btn-tiers" onclick="showPasswordPrompt('tiers')">
-                👁️ ACCÈS TIERS
-            </button>
-
-            <div class="footer-info">
-                <small>Base livrée hors ligne · Sauvegarde locale active</small>
-            </div>
+      </div>
+      <details class="admin-details">
+        <summary>🔐 Données cachées système</summary>
+        <div class="hidden-data mono">
+          [ROOT ACCESS GRANTED]<br>
+          Session Hash: <span id="sessionHash">—</span><br>
+          Last Sync: <span id="lastSync">—</span><br>
+          Modules: Diag_OBD2, TSB_EU, Recall_NHTSA, Maintenance_AI<br>
+          Storage: <span id="storageType">localStorage</span> · <span id="saveStatus">✓</span>
         </div>
+      </details>
     </div>
 
-    <!-- Modal Mot de passe -->
-    <div id="password-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3 id="modal-title">Authentification</h3>
-            <p class="modal-subtitle">Le mot de passe résiduel est effacé à chaque lancement.</p>
-            <input type="password" id="password-input" placeholder="••••••••" autocomplete="off">
-            <button onclick="checkPassword()" class="btn-primary">Valider l'accès</button>
-            <button onclick="closeModal()" class="btn-secondary">Annuler</button>
+    <!-- Banc de corrélation -->
+    <div class="correlation-bench glass">
+      <div class="bench-header">
+        <h3>🔍 Corrélation stricte — Marque → Modèle → Motorisation → Puissance</h3>
+        <div class="bench-actions">
+          <input type="text" id="quickSearch" class="search-input" 
+                 placeholder="Recherche sans accent — tapez « skoda »">
+          <button class="btn-sm" onclick="Diag.clear()">🗑 Reset</button>
         </div>
-    </div>
+      </div>
 
-    <!-- Tableau de bord principal -->
-    <div id="dashboard" class="screen hidden">
-        <header>
-            <div class="header-left">
-                <div class="logo-small">MECADATA <span class="separator">//</span> EXPERT</div>
-                <span id="user-badge" class="badge badge-tiers">TIERS</span>
-            </div>
-            <div class="header-right">
-                <button class="icon-btn" onclick="showAPKManager()" title="Gestionnaire APK">
-                    <span class="icon">⚙️</span>
-                </button>
-                <button class="icon-btn" onclick="manualSave()" title="Sauvegarder">
-                    <span class="icon">💾</span>
-                </button>
-                <button class="btn-logout" onclick="logout()">Déconnexion</button>
-            </div>
-        </header>
-
-        <main>
-            <!-- Navigation par onglets -->
-            <nav class="tab-navigation">
-                <button class="tab-btn active" onclick="switchTab('diagnostic')">🔍 Diagnostic</button>
-                <button class="tab-btn" onclick="switchTab('catalogue')">📚 Catalogue</button>
-                <button class="tab-btn admin-only hidden" onclick="switchTab('import')">📥 Import</button>
-                <button class="tab-btn admin-only hidden" onclick="switchTab('manager')">⚙️ Gestion</button>
-            </nav>
-
-            <!-- Onglet Diagnostic -->
-            <section id="tab-diagnostic" class="tab-content active">
-                <!-- Panneau Admin -->
-                <div id="admin-controls" class="admin-panel hidden">
-                    <h3>⚙️ Panneau de Contrôle Administrateur</h3>
-                    <div class="admin-stats">
-                        <div class="stat-box">
-                            <div class="stat-label">Base Active</div>
-                            <div class="stat-value" id="db-entries">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Dernière MAJ</div>
-                            <div class="stat-value" id="last-update">-</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Taille</div>
-                            <div class="stat-value" id="db-size">0 Ko</div>
-                        </div>
-                    </div>
-                    <div class="admin-actions">
-                        <button class="admin-btn" onclick="showImportModal()">
-                            📥 Importer Données
-                        </button>
-                        <button class="admin-btn export" onclick="exportData()">
-                            📤 Exporter Base
-                        </button>
-                        <button class="admin-btn" onclick="showHiddenData()">
-                            🔐 Données Cachées
-                        </button>
-                        <button class="admin-btn danger" onclick="resetDatabase()">
-                            ♻️ Réinitialiser
-                        </button>
-                    </div>
-                    
-                    <div id="hidden-data-panel" class="hidden-data hidden">
-                        <div class="hidden-data-content">
-                            <strong>[ROOT ACCESS GRANTED]</strong><br>
-                            Session Hash: <span id="session-hash">-</span><br>
-                            Last Sync: <span id="last-sync">-</span><br>
-                            Modules actifs: Diag_OBD2, TSB_EU, Recall_NHTSA, Maintenance_AI<br>
-                            Base locale: <span id="db-stats">0</span> entrées<br>
-                            Sauvegarde locale: <span id="save-status">✓ Active</span><br>
-                            Auto-Update: <span id="auto-update-status">✓ Activée</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sélecteur de véhicule avec filtres avancés -->
-                <section class="vehicle-selector">
-                    <div class="selector-header">
-                        <h3>🔍 Corrélation Véhicule</h3>
-                        <div class="filter-controls">
-                            <input type="text" id="search-vehicle" placeholder="Recherche rapide..." class="search-input">
-                            <button onclick="clearFilters()" class="btn-clear">🗑️ Effacer</button>
-                        </div>
-                    </div>
-                    
-                    <div class="selector-grid">
-                        <div class="selector-box">
-                            <label>Marque</label>
-                            <select id="select-brand" onchange="updateModels()">
-                                <option value="">Toutes les marques</option>
-                            </select>
-                        </div>
-                        <div class="selector-box">
-                            <label>Modèle</label>
-                            <select id="select-model" onchange="updateYears()">
-                                <option value="">Tous les modèles</option>
-                            </select>
-                        </div>
-                        <div class="selector-box">
-                            <label>Année</label>
-                            <select id="select-year" onchange="updateEngines()">
-                                <option value="">Toutes les années</option>
-                            </select>
-                        </div>
-                        <div class="selector-box">
-                            <label>Motorisation</label>
-                            <select id="select-engine" onchange="displayVehicleData()">
-                                <option value="">Toutes les motorisations</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="advanced-filters">
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label>Type d'énergie</label>
-                                <select id="filter-energy" onchange="applyFilters()">
-                                    <option value="">Toutes</option>
-                                    <option value="Essence">Essence</option>
-                                    <option value="Diesel">Diesel</option>
-                                    <option value="Hybride">Hybride</option>
-                                    <option value="Électrique">Électrique</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Puissance (ch)</label>
-                                <select id="filter-power" onchange="applyFilters()">
-                                    <option value="">Toutes</option>
-                                    <option value="0-100">0-100 ch</option>
-                                    <option value="100-150">100-150 ch</option>
-                                    <option value="150-200">150-200 ch</option>
-                                    <option value="200+">200+ ch</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Sévérité pannes</label>
-                                <select id="filter-severity" onchange="applyFilters()">
-                                    <option value="">Toutes</option>
-                                    <option value="high">Critiques uniquement</option>
-                                    <option value="medium">Moyennes+</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Statistiques -->
-                <section class="stats-bar">
-                    <div class="stat-chip">📊 <strong id="stat-brands">0</strong> Marques</div>
-                    <div class="stat-chip">🚗 <strong id="stat-models">0</strong> Modèles</div>
-                    <div class="stat-chip">⚙️ <strong id="stat-engines">0</strong> Motorisations</div>
-                    <div class="stat-chip">📋 <strong id="stat-faults">0</strong> Pannes/TSB</div>
-                </section>
-
-                <!-- Affichage des données -->
-                <section id="vehicle-data" class="hidden">
-                    <div class="data-grid">
-                        <div class="data-card card-engine">
-                            <h3>⚙️ Motorisation & Corrélation</h3>
-                            <ul id="info-engine"></ul>
-                        </div>
-                        
-                        <div class="data-card card-faults">
-                            <h3>⚠️ Pannes & Rappels</h3>
-                            <div class="filter-inline">
-                                <input type="checkbox" id="show-critical" checked>
-                                <label for="show-critical">Afficher critiques</label>
-                            </div>
-                            <ul id="info-faults"></ul>
-                        </div>
-                        
-                        <div class="data-card card-tsb">
-                            <h3>📜 Bulletins Techniques</h3>
-                            <ul id="info-tsb"></ul>
-                        </div>
-                        
-                        <div class="data-card card-maintenance">
-                            <h3>🔧 Plan d'Entretien</h3>
-                            <ul id="info-maintenance"></ul>
-                        </div>
-                    </div>
-                </section>
-                
-                <div id="no-data-msg" class="info-message">
-                    <p>Sélectionnez un véhicule complet (Marque → Modèle → Année → Moteur)<br>pour afficher les données techniques massives corrélées.</p>
-                </div>
-            </section>
-
-            <!-- Onglet Catalogue -->
-            <section id="tab-catalogue" class="tab-content">
-                <div class="catalogue-header">
-                    <h3>📚 Catalogue Complet</h3>
-                    <div class="catalogue-controls">
-                        <input type="text" id="catalogue-search" placeholder="Rechercher dans le catalogue...">
-                        <button onclick="exportCatalogue()" class="btn-primary">📤 Exporter</button>
-                    </div>
-                </div>
-                <div id="catalogue-list" class="catalogue-grid"></div>
-            </section>
-
-            <!-- Onglet Import -->
-            <section id="tab-import" class="tab-content">
-                <div class="import-panel">
-                    <h3>📥 Importation Massive</h3>
-                    <div class="import-zone" id="import-zone">
-                        <div class="drop-zone">
-                            <h4>Glissez-déposez vos fichiers ici</h4>
-                            <p>Formats acceptés : JSON, CSV, XML, TXT</p>
-                            <button onclick="document.getElementById('import-file').click()" class="btn-primary">
-                                📁 Sélectionner des fichiers
-                            </button>
-                            <input type="file" id="import-file" class="hidden" multiple accept=".json,.csv,.xml,.txt" onchange="handleImport(this)">
-                        </div>
-                    </div>
-                    
-                    <div class="import-preview" id="import-preview" class="hidden">
-                        <h4>Aperçu de l'import</h4>
-                        <div id="preview-content"></div>
-                        <button onclick="confirmImport()" class="btn-primary">✓ Confirmer l'import</button>
-                        <button onclick="cancelImport()" class="btn-secondary">✗ Annuler</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Onglet Gestion -->
-            <section id="tab-manager" class="tab-content">
-                <div class="manager-panel">
-                    <h3>⚙️ Gestionnaire APK & Mises à Jour</h3>
-                    
-                    <div class="manager-section">
-                        <h4>🔄 Mise à Jour Automatique</h4>
-                        <div class="toggle-row">
-                            <label>Activer la mise à jour automatique</label>
-                            <input type="checkbox" id="auto-update-toggle" checked onchange="toggleAutoUpdate()">
-                        </div>
-                        <div class="interval-control">
-                            <label>Intervalle de vérification (heures)</label>
-                            <input type="number" id="update-interval" value="24" min="1" max="168" onchange="updateInterval()">
-                        </div>
-                        <div class="last-check">
-                            Dernière vérification : <span id="last-check-time">Jamais</span>
-                        </div>
-                    </div>
-
-                    <div class="manager-section">
-                        <h4>💾 Gestion des Données</h4>
-                        <div class="manager-actions">
-                            <button onclick="exportData()" class="manager-btn">📤 Exporter Base Complète</button>
-                            <button onclick="importData()" class="manager-btn">📥 Importer Base</button>
-                            <button onclick="backupDatabase()" class="manager-btn">💾 Créer Sauvegarde</button>
-                            <button onclick="restoreBackup()" class="manager-btn">🔄 Restaurer Sauvegarde</button>
-                        </div>
-                    </div>
-
-                    <div class="manager-section">
-                        <h4>📊 Statistiques Système</h4>
-                        <div class="system-stats">
-                            <div class="stat-item">
-                                <span>Espace utilisé :</span>
-                                <strong id="storage-used">0 Mo</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span>Dernière sauvegarde :</span>
-                                <strong id="last-backup">Jamais</strong>
-                            </div>
-                            <div class="stat-item">
-                                <span>Version APK :</span>
-                                <strong>v6.0.0</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <small>MECADATA Expert v6.0 · Sauvegarde automatique active</small>
-        </footer>
-    </div>
-
-    <!-- Modal Import -->
-    <div id="import-modal" class="modal hidden">
-        <div class="modal-content modal-large">
-            <h3>📥 Importer des Données</h3>
-            <div class="import-options">
-                <button onclick="document.getElementById('import-file-modal').click()" class="btn-primary">
-                    📁 Sélectionner un fichier
-                </button>
-                <input type="file" id="import-file-modal" class="hidden" accept=".json,.csv,.xml,.txt" onchange="handleImportModal(this)">
-                
-                <div class="divider">OU</div>
-                
-                <textarea id="import-text" placeholder="Collez vos données JSON ici..." rows="10"></textarea>
-                <button onclick="importFromText()" class="btn-primary">Importer depuis le texte</button>
-            </div>
-            <button onclick="closeImportModal()" class="btn-secondary">Fermer</button>
+      <div class="bench-grid">
+        <div class="bench-cell">
+          <label>1 · Marque</label>
+          <select id="selBrand" onchange="Diag.onBrand()">
+            <option value="">Toutes les marques</option>
+          </select>
         </div>
+        <div class="bench-cell">
+          <label>2 · Modèle</label>
+          <select id="selModel" onchange="Diag.onModel()">
+            <option value="">Choisir d'abord une marque</option>
+          </select>
+        </div>
+        <div class="bench-cell">
+          <label>3 · Année production</label>
+          <select id="selYear" onchange="Diag.onYear()">
+            <option value="">Toutes les années</option>
+          </select>
+        </div>
+        <div class="bench-cell">
+          <label>4 · Cylindrée · type moteur</label>
+          <select id="selEngine" onchange="Diag.onEngine()">
+            <option value="">Toutes cylindrées / types</option>
+          </select>
+        </div>
+        <div class="bench-cell">
+          <label>5 · Puissance réelle</label>
+          <select id="selPower" onchange="Diag.run()">
+            <option value="">Toutes puissances</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filtres avancés -->
+      <div class="filters-advanced">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label>⚠ Sévérité</label>
+            <select id="fSeverity" onchange="Diag.run()">
+              <option value="">Toutes</option>
+              <option value="critical">Critique</option>
+              <option value="high">Élevé</option>
+              <option value="medium">Moyen</option>
+              <option value="info">Info</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>📋 Nature</label>
+            <select id="fNature" onchange="Diag.run()">
+              <option value="">Toutes</option>
+              <option value="Rappel">Rappels</option>
+              <option value="Campagne">Campagnes</option>
+              <option value="TSB">TSB / Bulletins</option>
+              <option value="Panne">Pannes connues</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>🔀 Tri</label>
+            <select id="fSort" onchange="Diag.run()">
+              <option value="severity">Sévérité ↓</option>
+              <option value="year">Année ↓</option>
+              <option value="alpha">A → Z</option>
+              <option value="source">Source</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>🚗 Usage</label>
+            <select id="fUsage" onchange="Diag.run()">
+              <option value="normal">15 000 km/an · Normal</option>
+              <option value="mixte">Mixte</option>
+              <option value="severe">Sévère</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>🌡 Climat</label>
+            <select id="fClima" onchange="Diag.run()">
+              <option value="temperate">Tempéré</option>
+              <option value="cold">Froid</option>
+              <option value="hot">Chaud</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/animations.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/importer.js"></script>
-    <script src="js/database.js"></script>
-    <script src="js/apk-manager.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Résultats -->
+    <div id="resultsArea">
+      <div class="results-tabs glass">
+        <button class="r-tab active" data-rtab="faults">⚠ Pannes & Rappels (<span id="countFaults">0</span>)</button>
+        <button class="r-tab" data-rtab="tsb">📜 TSB & Bulletins (<span id="countTsb">0</span>)</button>
+        <button class="r-tab" data-rtab="dtc">🔢 Codes DTC (<span id="countDtc">0</span>)</button>
+        <button class="r-tab" data-rtab="maint">🔧 Entretien réel (<span id="countMaint">0</span>)</button>
+        <button class="r-tab" data-rtab="sources">🌐 Sources officielles</button>
+      </div>
+
+      <div class="results-content">
+        <div class="r-pane active" id="r-faults"><ul id="listFaults"></ul></div>
+        <div class="r-pane" id="r-tsb"><ul id="listTsb"></ul></div>
+        <div class="r-pane" id="r-dtc"><div id="dtcDecoder"></div></div>
+        <div class="r-pane" id="r-maint"><ul id="listMaint"></ul></div>
+        <div class="r-pane" id="r-sources">
+          <div class="sources-grid">
+            <a href="https://rappel.conso.gouv.fr" target="_blank" class="source-card">🇫🇷 Rappel Conso France</a>
+            <a href="https://ec.europa.eu/safety-gate" target="_blank" class="source-card">🇪🇺 Safety Gate UE</a>
+            <a href="https://www.nhtsa.gov/recalls" target="_blank" class="source-card">🇺🇸 NHTSA USA</a>
+            <a href="https://www.kba.de" target="_blank" class="source-card">🇩🇪 KBA Allemagne</a>
+            <a href="https://www.gov.uk/government/organisations/driver-and-vehicle-standards-agency" target="_blank" class="source-card">🇬🇧 DVSA UK</a>
+            <a href="https://www.obd-codes.com" target="_blank" class="source-card">🔧 OBD-Codes DTC</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="noResults" class="info-card glass">
+      <h3>⏳ En attente de corrélation</h3>
+      <p>Sélectionnez les 4 critères : <strong>Marque · Modèle · Motorisation · Puissance</strong><br>
+      pour afficher les fiches techniques strictement corrélées.</p>
+    </div>
+  </section>
+
+  <!-- ═══════ TAB: CATALOGUE ═══════ -->
+  <section class="tab-content" id="tab-catalogue">
+    <div class="section-header glass">
+      <h3>📚 Catalogue Motorisations</h3>
+      <div class="section-actions">
+        <input type="text" id="catSearch" placeholder="Filtrer..." oninput="Catalogue.filter()">
+        <button class="btn-sm" onclick="Catalogue.export()">📤 Exporter</button>
+      </div>
+    </div>
+    <div class="catalogue-stats glass">
+      <span id="catCount">0 motorisations</span> · tri par marque ↑ · <span id="catSelected">0 sélectionnée(s)</span>
+    </div>
+    <div id="catalogueGrid" class="catalogue-grid"></div>
+    <div class="pagination" id="catPagination"></div>
+  </section>
+
+  <!-- ═══════ TAB: TSB ═══════ -->
+  <section class="tab-content" id="tab-tsb">
+    <div class="section-header glass">
+      <h3>📋 Fiches Pannes · TSB · Rappels · Campagnes</h3>
+    </div>
+    <div class="tsb-filter-bar glass">
+      <div class="domain-chips" id="domainChips"></div>
+    </div>
+    <div id="tsbList" class="tsb-list"></div>
+  </section>
+
+  <!-- ═══════ TAB: DOMAINES ═══════ -->
+  <section class="tab-content" id="tab-domains">
+    <div class="section-header glass">
+      <h3>🧩 29 Domaines Techniques</h3>
+    </div>
+    <div id="domainsGrid" class="domains-grid"></div>
+  </section>
+
+  <!-- ═══════ TAB: IMPORT ═══════ -->
+  <section class="tab-content" id="tab-import">
+    <div class="section-header glass">
+      <h3>📥 Import Massif Extrême</h3>
+    </div>
+    <div class="import-zone glass" id="dropZone">
+      <div class="drop-inner">
+        <div class="drop-icon">📁</div>
+        <h4>Glissez vos fichiers ici</h4>
+        <p class="muted">Formats : JSON, CSV, XML, TXT, ODS, XLSX</p>
+        <button class="btn-primary" onclick="document.getElementById('importFile').click()">
+          📁 Sélectionner plusieurs fichiers
+        </button>
+        <input type="file" id="importFile" multiple accept=".json,.csv,.xml,.txt,.ods,.xlsx" hidden>
+        <div class="divider">OU</div>
+        <textarea id="importText" rows="8" placeholder='Collez du JSON : {"Renault":{"Clio":{...}}}'></textarea>
+        <button class="btn-primary" onclick="Importer.fromText()">⚡ Importer depuis texte</button>
+      </div>
+    </div>
+    <div id="importPreview" class="import-preview glass hidden">
+      <h4>Aperçu — <span id="previewCount">0</span> entrées détectées</h4>
+      <div id="previewContent"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="Importer.confirm()">✓ Fusionner</button>
+        <button class="btn-ghost" onclick="Importer.cancel()">✗ Annuler</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ TAB: MANAGER APK ═══════ -->
+  <section class="tab-content" id="tab-manager">
+    <div class="section-header glass">
+      <h3>⚙ Gestionnaire APK & Mises à jour</h3>
+    </div>
+
+    <div class="manager-section glass">
+      <h4>🔄 Mises à jour automatiques</h4>
+      <div class="toggle-row">
+        <span>Activer la MAJ automatique</span>
+        <label class="switch">
+          <input type="checkbox" id="autoUpdate" checked onchange="Manager.setAutoUpdate()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="interval-row">
+        <label>Intervalle (heures)</label>
+        <input type="number" id="updateInterval" value="24" min="1" max="168" onchange="Manager.setInterval()">
+      </div>
+      <div class="url-row">
+        <label>URL serveur distant</label>
+        <input type="url" id="updateUrl" value="https://expertkevin06-cell.github.io/V2newprojet2026/data/" onchange="Manager.setUrl()">
+      </div>
+      <div class="last-check">Dernière vérification : <strong id="lastCheck">Jamais</strong></div>
+      <button class="btn-primary" onclick="Manager.checkNow()">🔄 Vérifier maintenant</button>
+    </div>
+
+    <div class="manager-section glass">
+      <h4>💾 Import / Export APK</h4>
+      <div class="manager-grid">
+        <button class="manager-btn" onclick="Manager.exportFull()">📤 Export APK complet</button>
+        <button class="manager-btn" onclick="Manager.importAPK()">📥 Import APK</button>
+        <button class="manager-btn" onclick="Manager.createBackup()">💾 Backup manuel</button>
+        <button class="manager-btn" onclick="Manager.restoreBackup()">🔄 Restaurer backup</button>
+      </div>
+    </div>
+
+    <div class="manager-section glass">
+      <h4>📊 Statistiques Système</h4>
+      <div class="sys-stats">
+        <div class="sys-row"><span>Espace utilisé :</span><strong id="storageUsed">0 Mo</strong></div>
+        <div class="sys-row"><span>Dernière sauvegarde :</span><strong id="lastBackup">Jamais</strong></div>
+        <div class="sys-row"><span>Nombre de backups :</span><strong id="backupCount">0</strong></div>
+        <div class="sys-row"><span>Version APK :</span><strong>v7.0.0 FUSION</strong></div>
+        <div class="sys-row"><span>Build :</span><strong id="buildDate">—</strong></div>
+      </div>
+    </div>
+
+    <div class="manager-section glass danger-zone">
+      <h4>⚠ Zone sensible</h4>
+      <button class="btn-danger" onclick="Manager.resetAll()">♻ Réinitialiser TOUT</button>
+      <button class="btn-danger" onclick="Manager.purgeCache()">🧹 Purger cache</button>
+    </div>
+  </section>
+
+  <!-- ═══════ TAB: TIERS ═══════ -->
+  <section class="tab-content" id="tab-tiers">
+    <div class="section-header glass">
+      <h3>👥 Gestionnaire de tiers</h3>
+      <p class="muted">Demandes temps réel · accès, refus, révocation</p>
+    </div>
+    <div class="tiers-filter glass">
+      <button class="filter-btn active" data-status="all">Tous</button>
+      <button class="filter-btn" data-status="pending">En attente</button>
+      <button class="filter-btn" data-status="approved">Autorisés</button>
+      <button class="filter-btn" data-status="denied">Refusés</button>
+      <button class="filter-btn" data-status="revoked">Révoqués</button>
+      <button class="btn-danger btn-sm" onclick="Manager.revokeAll()">Tout révoquer</button>
+    </div>
+    <div id="tiersList" class="tiers-list"></div>
+  </section>
+
+  <footer class="app-footer">
+    <small>MECADATA Expert v7.0 FUSION · 2017→2027 · 3 projets fusionnés · Sauvegarde locale active</small>
+  </footer>
+</div>
+
+<!-- Scripts -->
+<script src="js/database.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/importer.js"></script>
+<script src="js/diagnostic.js"></script>
+<script src="js/catalogue.js"></script>
+<script src="js/tsb.js"></script>
+<script src="js/manager.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/core.js"></script>
 </body>
 </html>
