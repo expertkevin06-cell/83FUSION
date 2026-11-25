@@ -1,163 +1,23 @@
-window.Importer = {
-  pending: null,
-  
-  init() {
-    const zone = document.getElementById('dropZone');
-    const inp = document.getElementById('importFile');
-    
-    zone.addEventListener('dragover', e => {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-    });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      this.processFiles(e.dataTransfer.files);
-    });
-    inp.addEventListener('change', () => this.processFiles(inp.files));
-  },
-  
-  async processFiles(files) {
-    let total = 0;
-    for (const file of files) {
-      try {
-        const data = await this.parseFile(file);
-        total += Object.keys(data).length;
-        Database.merge(data);
-      } catch (e) {
-        alert(`✗ Erreur ${file.name}: ${e.message}`);
-      }
-    }
-    if (total > 0) {
-      Storage.save();
-      Diag.init();
-      Catalogue.render();
-      TSB.render();
-      alert(`✓ ${total} entrée(s) fusionnée(s)`);
-    }
-  },
-  
-  async parseFile(file) {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const content = await file.text();
-    switch (ext) {
-      case 'json': return this.parseJSON(content);
-      case 'csv': return this.parseCSV(content);
-      case 'xml': return this.parseXML(content);
-      case 'txt': return this.parseTXT(content);
-      default: throw new Error(`Format ${ext} non supporté`);
-    }
-  },
-  
-  parseJSON(text) {
-    try { return JSON.parse(text); }
-    catch { throw new Error('JSON invalide'); }
-  },
-  
-  parseCSV(text) {
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) throw new Error('CSV vide');
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-    const data = {};
-    for (let i = 1; i < lines.length; i++) {
-      const vals = lines[i].split(',').map(v => v.trim());
-      const row = {};
-      headers.forEach((h, j) => row[h] = vals[j] || '');
-      const b = row.brand || row.marque;
-      const m = row.model || row.modele;
-      if (b && m) {
-        if (!data[b]) data[b] = {};
-        if (!data[b][m]) data[b][m] = {};
-        const y = row.year || row.annee || '2020-2024';
-        if (!data[b][m][y]) data[b][m][y] = {};
-        const e = row.engine || row.moteur || 'Unknown';
-        data[b][m][y][e] = {
-          power: parseInt(row.power || row.puissance) || 0,
-          cyl: parseInt(row.cyl || row.cylindree) || 0,
-          energy: row.energy || row.energie || 'Essence',
-          faults: row.faults ? [{ title: row.faults, severity: row.severity || 'medium', nature: row.nature || 'Panne', ref: row.ref || 'N/A', symptoms: row.symptoms || '' }] : [],
-          tsb: [],
-          dtc: [],
-          maintenance: []
-        };
-      }
-    }
-    return data;
-  },
-  
-  parseXML(text) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, 'text/xml');
-    const data = {};
-    for (const v of doc.getElementsByTagName('vehicle')) {
-      const b = v.getAttribute('brand');
-      const m = v.getAttribute('model');
-      if (b && m) {
-        if (!data[b]) data[b] = {};
-        if (!data[b][m]) data[b][m] = {};
-        const y = v.getAttribute('year') || '2020-2024';
-        if (!data[b][m][y]) data[b][m][y] = {};
-        const e = v.getAttribute('engine') || 'Unknown';
-        data[b][m][y][e] = {
-          power: parseInt(v.getAttribute('power')) || 0,
-          faults: [], tsb: [], dtc: [], maintenance: []
-        };
-      }
-    }
-    return data;
-  },
-  
-  parseTXT(text) {
-    const data = {};
-    let b, m, y, e;
-    for (const line of text.split('\n')) {
-      const t = line.trim();
-      if (t.startsWith('BRAND:')) { b = t.replace('BRAND:', '').trim(); data[b] = data[b] || {}; }
-      else if (t.startsWith('MODEL:')) { m = t.replace('MODEL:', '').trim(); data[b][m] = data[b][m] || {}; }
-      else if (t.startsWith('YEAR:')) { y = t.replace('YEAR:', '').trim(); data[b][m][y] = data[b][m][y] || {}; }
-      else if (t.startsWith('ENGINE:')) {
-        e = t.replace('ENGINE:', '').trim();
-        data[b][m][y][e] = { power: 0, faults: [], tsb: [], dtc: [], maintenance: [] };
-      }
-    }
-    return data;
-  },
-  
-  fromText() {
-    const text = document.getElementById('importText').value.trim();
-    if (!text) { alert('Texte vide'); return; }
-    try {
-      const data = this.parseJSON(text);
-      this.pending = data;
-      this.showPreview(data);
-    } catch (e) {
-      alert('JSON invalide: ' + e.message);
-    }
-  },
-  
-  showPreview(data) {
-    const count = Object.keys(data).length;
-    document.getElementById('previewCount').textContent = count;
-    document.getElementById('previewContent').textContent = JSON.stringify(data, null, 2).slice(0, 2000);
-    document.getElementById('importPreview').classList.remove('hidden');
-  },
-  
-  confirm() {
-    if (!this.pending) return;
-    Database.merge(this.pending);
-    Storage.save();
-    Diag.init();
-    Catalogue.render();
-    TSB.render();
-    document.getElementById('importPreview').classList.add('hidden');
-    document.getElementById('importText').value = '';
-    this.pending = null;
-    alert('✓ Fusion effectuée');
-  },
-  
-  cancel() {
-    this.pending = null;
-    document.getElementById('importPreview').classList.add('hidden');
-  }
+window.Importer={pending:null,
+ init:function(){
+  var z=document.getElementById('dropZone'),inp=document.getElementById('importFile');
+  if(!z)return;
+  z.addEventListener('dragover',function(e){e.preventDefault();});
+  z.addEventListener('drop',function(e){e.preventDefault();Importer.process(e.dataTransfer.files);});
+  inp.addEventListener('change',function(){Importer.process(inp.files);inp.value='';});
+ },
+ process:function(files){var done=0,total=0;Array.prototype.forEach.call(files,function(f){var r=new FileReader();r.onload=function(){try{var d=Importer.parse(f.name,r.result);var n=Object.keys(d).length;total+=n;Database.merge(d);}catch(e){alert(f.name+' : '+e.message);}done++;if(done===files.length&&total>0){Storage.save();try{Diag.init();Catalogue.render();TSB.render();}catch(e){}alert('✓ '+total+' entrée(s) fusionnée(s)');}};r.readAsText(f);});},
+ parse:function(name,text){var ext=name.split('.').pop().toLowerCase();
+  if(ext==='json')return JSON.parse(text);
+  if(ext==='csv')return this.csv(text);
+  if(ext==='xml')return this.xml(text);
+  if(ext==='txt')return this.txt(text);
+  throw new Error('Format .'+ext+' non supporté');},
+ csv:function(t){var L=t.trim().split('\n');if(L.length<2)throw new Error('CSV vide');var H=L[0].split(',').map(function(h){return h.trim().toLowerCase();});var d={};for(var i=1;i<L.length;i++){var v=L[i].split(','),r={};H.forEach(function(h,j){r[h]=(v[j]||'').trim();});var b=r.brand||r.marque,m=r.model||r.modele;if(!b||!m)continue;d[b]=d[b]||{};d[b][m]=d[b][m]||{};var y=r.year||r.annee||'2020-2024';d[b][m][y]=d[b][m][y]||{};var e=r.engine||r.moteur||'Unknown';d[b][m][y][e]={power:parseInt(r.power||r.puissance,10)||0,cyl:parseInt(r.cyl||r.cylindree,10)||0,energy:r.energy||r.energie||'Essence',faults:r.faults?[{title:r.faults,severity:r.severity||'medium',nature:r.nature||'Panne',ref:r.ref||'N/A',symptoms:r.symptoms||''}]:[],tsb:[],dtc:[],maintenance:[]};}return d;},
+ xml:function(t){var doc=new DOMParser().parseFromString(t,'text/xml'),d={},vs=doc.getElementsByTagName('vehicle');for(var i=0;i<vs.length;i++){var v=vs[i],b=v.getAttribute('brand'),m=v.getAttribute('model');if(!b||!m)continue;d[b]=d[b]||{};d[b][m]=d[b][m]||{};var y=v.getAttribute('year')||'2020-2024';d[b][m][y]=d[b][m][y]||{};var e=v.getAttribute('engine')||'Unknown';d[b][m][y][e]={power:parseInt(v.getAttribute('power'),10)||0,faults:[],tsb:[],dtc:[],maintenance:[]};}return d;},
+ txt:function(t){var d={},b,m,y,e;var L=t.split('\n');for(var i=0;i<L.length;i++){var s=L[i].trim();if(s.indexOf('BRAND:')===0){b=s.slice(6).trim();d[b]=d[b]||{};}else if(s.indexOf('MODEL:')===0&&b){m=s.slice(6).trim();d[b][m]=d[b][m]||{};}else if(s.indexOf('YEAR:')===0&&b&&m){y=s.slice(5).trim();d[b][m][y]=d[b][m][y]||{};}else if(s.indexOf('ENGINE:')===0&&b&&m&&y){e=s.slice(7).trim();d[b][m][y][e]={power:0,faults:[],tsb:[],dtc:[],maintenance:[]};}}return d;},
+ fromText:function(){var t=(document.getElementById('importText').value||'').trim();if(!t){alert('Texte vide');return;}try{var d=JSON.parse(t);this.pending=d;this.preview(d);}catch(e){alert('JSON invalide : '+e.message);}},
+ preview:function(d){document.getElementById('previewCount').textContent=Object.keys(d).length;document.getElementById('previewContent').textContent=JSON.stringify(d,null,2).slice(0,2000);document.getElementById('importPreview').classList.remove('hidden');},
+ confirm:function(){if(!this.pending)return;Database.merge(this.pending);Storage.save();try{Diag.init();Catalogue.render();TSB.render();}catch(e){}document.getElementById('importPreview').classList.add('hidden');document.getElementById('importText').value='';this.pending=null;alert('✓ Fusion effectuée');},
+ cancel:function(){this.pending=null;document.getElementById('importPreview').classList.add('hidden');}
 };
