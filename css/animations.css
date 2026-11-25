@@ -1,0 +1,81 @@
+.bg-animated {
+  position: fixed; inset: 0; z-index: 1;
+  overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(ellipse at top, rgba(59,130,246,0.15), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(6,182,212,0.1), transparent 50%),
+    var(--bg);
+}
+
+#particleCanvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+
+.floating-tool {
+  position: absolute;
+  opacity: 0.18;
+  filter: drop-shadow(0 0 20px rgba(59,130,246,0.5));
+  animation: floatTool 25s ease-in-out infinite;
+}
+
+.wrench-tool {
+  top: 15%; left: 8%;
+  width: 120px; height: 120px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M15 50 Q25 30 45 30 L55 30 Q75 30 85 50 Q75 70 55 70 L45 70 Q25 70 15 50 Z M30 50 a8 8 0 1 1 16 0 a8 8 0 1 1 -16 0 M54 50 a8 8 0 1 1 16 0 a8 8 0 1 1 -16 0' fill='%2394a3b8' stroke='%2364748b' stroke-width='2'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.oil-can-tool {
+  top: 55%; right: 10%;
+  width: 90px; height: 140px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 100'><rect x='15' y='20' width='30' height='70' rx='4' fill='%23f59e0b' stroke='%23d97706' stroke-width='2'/><rect x='20' y='10' width='20' height='14' fill='%2378350f'/><path d='M45 40 L58 32 L58 42 Z' fill='%2378350f'/><rect x='22' y='40' width='16' height='30' fill='%23fbbf24' opacity='0.4'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  animation: floatTool 30s ease-in-out infinite reverse;
+}
+
+@keyframes floatTool {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(80px, -40px) rotate(12deg); }
+  50% { transform: translate(160px, 30px) rotate(-8deg); }
+  75% { transform: translate(40px, -20px) rotate(5deg); }
+}
+
+.bubbles {
+  position: absolute; inset: 0;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%,
+    rgba(245,158,11,0.4),
+    rgba(245,158,11,0.1) 60%,
+    transparent);
+  box-shadow: 0 0 20px rgba(245,158,11,0.3);
+  animation: bubbleRise linear infinite;
+}
+
+.bubble:nth-child(1) { width: 80px; height: 80px; left: 15%; animation-duration: 14s; animation-delay: 0s; }
+.bubble:nth-child(2) { width: 120px; height: 120px; left: 45%; animation-duration: 19s; animation-delay: 3s; }
+.bubble:nth-child(3) { width: 60px; height: 60px; left: 70%; animation-duration: 16s; animation-delay: 6s; }
+.bubble:nth-child(4) { width: 100px; height: 100px; left: 30%; animation-duration: 21s; animation-delay: 2s; }
+.bubble:nth-child(5) { width: 70px; height: 70px; left: 82%; animation-duration: 17s; animation-delay: 5s; }
+.bubble:nth-child(6) { width: 90px; height: 90px; left: 5%; animation-duration: 18s; animation-delay: 8s; }
+
+@keyframes bubbleRise {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  10% { opacity: 0.6; }
+  50% { transform: translate(40px, -50vh) scale(1.1); opacity: 0.5; }
+  90% { opacity: 0.2; }
+  100% { transform: translate(-30px, -110vh) scale(0.8); opacity: 0; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
