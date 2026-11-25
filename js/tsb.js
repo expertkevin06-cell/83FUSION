@@ -1,83 +1,9 @@
-window.TSB = {
-  domain: null,
-  
-  init() {
-    this.renderDomains();
-    this.render();
-  },
-  
-  renderDomains() {
-    const chips = document.getElementById('domainChips');
-    chips.innerHTML = `<div class="domain-chip active" onclick="TSB.setDomain(null)">Tous</div>` +
-      DOMAINS.map(d => `<div class="domain-chip" onclick="TSB.setDomain('${d}')">${d}</div>`).join('');
-  },
-  
-  setDomain(d) {
-    this.domain = d;
-    document.querySelectorAll('.domain-chip').forEach(c => c.classList.remove('active'));
-    event.target.classList.add('active');
-    this.render();
-  },
-  
-  getAll() {
-    const all = [];
-    for (const [brand, models] of Object.entries(Database.data)) {
-      for (const [model, years] of Object.entries(models)) {
-        for (const [yr, engines] of Object.entries(years)) {
-          for (const [eng, data] of Object.entries(engines)) {
-            (data.faults || []).forEach(f => {
-              all.push({ brand, model, years: yr, engine: eng, ...f });
-            });
-            (data.tsb || []).forEach(t => {
-              all.push({ brand, model, years: yr, engine: eng, ...t, nature: 'TSB', severity: 'info' });
-            });
-          }
-        }
-      }
-    }
-    return all;
-  },
-  
-  render() {
-    let items = this.getAll();
-    if (this.domain) {
-      // Filtrer par domaine (via protocoles)
-      items = items.filter(i => 
-        (i.symptoms || '').includes(this.domain) ||
-        (i.title || '').includes(this.domain)
-      );
-    }
-    document.getElementById('tsbList').innerHTML = items.length ?
-      items.slice(0, 200).map(i => `
-        <div class="tsb-card">
-          <h4>${i.title}</h4>
-          <div class="tsb-meta">
-            <span class="tag tag-${i.severity || 'info'}">${(i.severity || 'info').toUpperCase()}</span>
-            <span class="tag-nature tag-${(i.nature || 'TSB').toLowerCase()}">${i.nature || 'TSB'}</span>
-            <span class="muted">${i.brand} · ${i.model} · ${i.engine} · ${i.years}</span>
-          </div>
-          ${i.symptoms ? `<div class="tsb-symptoms">${i.symptoms}</div>` : ''}
-          ${i.ref ? `<small style="color: var(--muted)">Réf: ${i.ref}</small>` : ''}
-        </div>
-      `).join('') :
-      '<div class="info-card glass"><p>Aucune fiche pour ce domaine.</p></div>';
-  }
+window.TSB={domain:null,
+ all:function(){var out=[];for(var br in Database.data)for(var mo in Database.data[br])for(var yr in Database.data[br][mo])for(var en in Database.data[br][mo][yr]){var d=Database.data[br][mo][yr][en];(d.faults||[]).forEach(function(f){out.push({brand:br,model:mo,years:yr,engine:en,title:f.title,severity:f.severity,nature:f.nature,symptoms:f.symptoms,ref:f.ref});});(d.tsb||[]).forEach(function(t){out.push({brand:br,model:mo,years:yr,engine:en,title:t.title,severity:'info',nature:'TSB',symptoms:t.scope,ref:t.ref});});}return out;},
+ chips:function(){var h='<span class="domain-chip active" onclick="TSB.setDomain(null,this)">Tous</span>';DOMAINS.forEach(function(d){h+='<span class="domain-chip" onclick="TSB.setDomain(\''+d.replace(/'/g,'')+'\',this)">'+d+'</span>';});document.getElementById('domainChips').innerHTML=h;},
+ setDomain:function(d,el){this.domain=d;Array.prototype.forEach.call(document.querySelectorAll('.domain-chip'),function(c){c.classList.remove('active');});if(el)el.classList.add('active');this.render();},
+ render:function(){var items=this.all();if(this.domain){var t=this.domain.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');items=items.filter(function(i){return ((i.title||'')+' '+(i.symptoms||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').indexOf(t)>-1;});}
+  document.getElementById('tsbList').innerHTML=items.length?items.slice(0,200).map(function(i){return '<div class="tsb-card"><h4>'+i.title+'</h4><div class="tsb-meta"><span class="tag tag-'+i.severity+'">'+i.severity.toUpperCase()+'</span><span class="tag-nature tag-'+(i.nature||'tsb').toLowerCase()+'">'+i.nature+'</span><span class="muted">'+i.brand+' · '+i.model+' · '+i.engine+' · '+i.years+'</span></div>'+(i.symptoms?'<div class="muted">'+i.symptoms+'</div>':'')+'<small class="muted">Réf: '+i.ref+'</small></div>';}).join(''):'<div class="info-card glass"><p>Aucune fiche pour ce filtre.</p></div>';}
 };
 
-window.Domains = {
-  init() {
-    const grid = document.getElementById('domainsGrid');
-    const all = TSB.getAll();
-    grid.innerHTML = DOMAINS.map(d => {
-      const count = all.filter(i => 
-        (i.symptoms || '').includes(d) || (i.title || '').includes(d)
-      ).length;
-      return `
-        <div class="domain-card" onclick="UI.showPanel('tsb'); TSB.setDomain('${d}')">
-          <div class="count">${count}</div>
-          <div class="name">${d}</div>
-        </div>
-      `;
-    }).join('');
-  }
-};
+window.Domains={init:function(){var all=TSB.all();document.getElementById('domainsGrid').innerHTML=DOMAINS.map(function(d){var t=d.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');var c=all.filter(function(i){return ((i.title||'')+' '+(i.symptoms||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').indexOf(t)>-1;}).length;return '<div class="domain-card" onclick="UI.showPanel(\'tsb\');TSB.setDomain(\''+d.replace(/'/g,'')+'\',null);TSB.chips()"><div class="count">'+c+'</div><div class="name">'+d+'</div></div>';}).join('');}};
