@@ -1,91 +1,23 @@
-window.Storage = {
-  KEY: 'mecadata_v7',
-  BACKUP_KEY: 'mecadata_backups',
-  SETTINGS_KEY: 'mecadata_settings',
-  AUTO_SAVE_MS: 30000,
-  timer: null,
-  
-  save() {
-    try {
-      const data = {
-        version: '7.0',
-        timestamp: Date.now(),
-        db: window.Database.data,
-        stats: window.Database.stats()
-      };
-      localStorage.setItem(this.KEY, JSON.stringify(data));
-      console.log('✓ Sauvegarde locale OK');
-      this.updateStatus(true);
-      return true;
-    } catch (e) {
-      console.error('✗ Erreur save:', e);
-      this.updateStatus(false);
-      return false;
-    }
-  },
-  
-  load() {
-    try {
-      const raw = localStorage.getItem(this.KEY);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      console.log(`✓ DB chargée du ${new Date(data.timestamp).toLocaleString()}`);
-      return data;
-    } catch (e) {
-      return null;
-    }
-  },
-  
-  startAutoSave() {
-    if (this.timer) clearInterval(this.timer);
-    this.timer = setInterval(() => this.save(), this.AUTO_SAVE_MS);
-  },
-  
-  stopAutoSave() {
-    if (this.timer) { clearInterval(this.timer); this.timer = null; }
-  },
-  
-  backup() {
-    const data = this.load();
-    if (!data) { alert('Aucune donnée à sauvegarder'); return; }
-    let backups = JSON.parse(localStorage.getItem(this.BACKUP_KEY) || '[]');
-    backups.push({ ...data, backupTime: Date.now() });
-    if (backups.length > 10) backups.shift();
-    localStorage.setItem(this.BACKUP_KEY, JSON.stringify(backups));
-    alert(`✓ Backup créé (${backups.length}/10)`);
-  },
-  
-  restore() {
-    const backups = JSON.parse(localStorage.getItem(this.BACKUP_KEY) || '[]');
-    if (!backups.length) { alert('Aucun backup disponible'); return; }
-    const last = backups[backups.length - 1];
-    if (confirm(`Restaurer le backup du ${new Date(last.backupTime).toLocaleString()} ?`)) {
-      localStorage.setItem(this.KEY, JSON.stringify(last));
-      location.reload();
-    }
-  },
-  
-  clear() {
-    localStorage.removeItem(this.KEY);
-    alert('✓ Données effacées');
-    location.reload();
-  },
-  
-  size() {
-    const raw = localStorage.getItem(this.KEY);
-    return raw ? new Blob([raw]).size : 0;
-  },
-  
-  updateStatus(ok) {
-    const el = document.getElementById('saveStatus');
-    if (el) el.textContent = ok ? '✓ OK' : '✗ Erreur';
-  },
-  
-  getSettings() {
-    return JSON.parse(localStorage.getItem(this.SETTINGS_KEY) || '{}');
-  },
-  
-  saveSettings(s) {
-    localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(s));
-  }
-};
+window.Storage=(function(){
+  var mem={},ok=true;
+  try{localStorage.setItem('__t','1');localStorage.removeItem('__t');}catch(e){ok=false;}
+  var store=ok?localStorage:{getItem:function(k){return mem[k]||null;},setItem:function(k,v){mem[k]=String(v);},removeItem:function(k){delete mem[k];}};
+  var KEY='mecadata_v7',BKEY='mecadata_backups',SKEY='mecadata_settings',timer=null;
+  return{
+    type:ok?'localStorage':'mémoire (WebView restrictif)',
+    save:function(){try{store.setItem(KEY,JSON.stringify({version:'7.2',timestamp:Date.now(),db:Database.data}));this.status(true);return true;}catch(e){this.status(false);console.error('Save:',e);return false;}},
+    load:function(){try{var r=store.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}},
+    startAutoSave:function(){var self=this;if(timer)clearInterval(timer);timer=setInterval(function(){self.save();},30000);},
+    stopAutoSave:function(){if(timer){clearInterval(timer);timer=null;}},
+    backup:function(){var d=this.load();if(!d){alert('Aucune donnée');return;}var b=[];try{b=JSON.parse(store.getItem(BKEY)||'[]');}catch(e){}b.push({db:d.db,backupTime:Date.now()});if(b.length>10)b.shift();store.setItem(BKEY,JSON.stringify(b));alert('✓ Backup créé ('+b.length+'/10)');},
+    restore:function(){var b=[];try{b=JSON.parse(store.getItem(BKEY)||'[]');}catch(e){}if(!b.length){alert('Aucun backup');return;}if(confirm('Restaurer le backup du '+new Date(b[b.length-1].backupTime).toLocaleString('fr-FR')+' ?')){store.setItem(KEY,JSON.stringify({version:'7.2',timestamp:Date.now(),db:b[b.length-1].db}));location.reload();}},
+    clearAll:function(){try{store.removeItem(KEY);store.removeItem(BKEY);store.removeItem(SKEY);}catch(e){}},
+    size:function(){try{var r=store.getItem(KEY);return r?new Blob([r]).size:0;}catch(e){return 0;}},
+    status:function(v){var el=document.getElementById('saveStatus');if(el)el.textContent=v?'✓ OK':'✗ Erreur';},
+    getSettings:function(){try{return JSON.parse(store.getItem(SKEY)||'{}');}catch(e){return{};}},
+    saveSettings:function(s){try{store.setItem(SKEY,JSON.stringify(s));}catch(e){}},
+    getRequests:function(){try{return JSON.parse(store.getItem('mecadata_requests')||'[]');}catch(e){return[];}},
+    setRequests:function(r){try{store.setItem('mecadata_requests',JSON.stringify(r));}catch(e){}},
+    raw:store
+  };
+})();
